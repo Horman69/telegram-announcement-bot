@@ -1,0 +1,21 @@
+{
+    "name": "telegram-bot",
+    "version": "1.0.0",
+    "description": "Telegram bot on JavaScript",
+    "main": "src/bot.js",
+    "type": "module",
+    "scripts": {
+        "start": "node src/bot.js",
+        "dev": "node --watch src/bot.js"
+    },
+    "keywords": [
+        "telegram",
+        "bot"
+    ],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "telegraf": "^4.16.3",
+        "dotenv": "^16.4.5"
+    }
+}
