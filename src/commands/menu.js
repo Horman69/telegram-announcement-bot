@@ -223,13 +223,16 @@ export function setupMenuCommand(bot) {
                         return;
                     }
 
+                    // Импортируем conversationState
+                    const conversationState = (await import('../services/conversationState.js')).default;
+                    
+                    // Устанавливаем состояние диалога для запуска процесса добавления админа
+                    conversationState.setState(userId, { action: 'waiting_new_admin_id' });
+
                     const addAdminText = `👥 Добавить администратора\n\n` +
-                        `Используйте команду для добавления нового администратора:\n\n` +
-                        `/addadmin\n\n` +
-                        `Затем:\n` +
-                        `1. Отправьте Telegram ID пользователя\n` +
-                        `2. Подтвердите добавление\n` +
-                        `3. Администратор будет добавлен в систему`;
+                        `Отправьте Telegram ID пользователя, которого хотите сделать администратором.\n\n` +
+                        `Пример: \`123456789\`\n\n` +
+                        `❌ /cancel - отменить`;
 
                     const addAdminKeyboard = menuBuilder.getAdminManagementMenu();
                     await ctx.editMessageText(addAdminText, addAdminKeyboard);
