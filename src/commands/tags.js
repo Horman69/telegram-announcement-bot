@@ -22,11 +22,15 @@ export function setupTagCommands(bot) {
         const args = ctx.message.text.replace('/tag_add', '').trim().split(/\s+/);
 
         if (args.length < 2) {
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:tags')]
+            ]);
             return ctx.reply(
                 '⚠️ Использование: /tag_add <group_id> <тег>\n\n' +
                 'Пример:\n' +
                 '/tag_add -1001601437600 новости\n\n' +
-                'Используйте /groups для просмотра ID групп.'
+                'Используйте /groups для просмотра ID групп.',
+                backKeyboard
             );
         }
 
@@ -34,27 +38,39 @@ export function setupTagCommands(bot) {
         const tag = args.slice(1).join(' '); // Тег может состоять из нескольких слов
 
         if (isNaN(groupId)) {
-            return ctx.reply('❌ Неверный формат ID группы. ID должен быть числом.');
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:tags')]
+            ]);
+            return ctx.reply('❌ Неверный формат ID группы. ID должен быть числом.', backKeyboard);
         }
 
         const group = groupManager.getGroupById(groupId);
         if (!group) {
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:tags')]
+            ]);
             return ctx.reply(
                 `❌ Группа с ID ${groupId} не найдена.\n\n` +
-                'Используйте /groups для просмотра доступных групп.'
+                'Используйте /groups для просмотра доступных групп.',
+                backKeyboard
             );
         }
 
         const success = groupManager.addTag(groupId, tag);
 
+        const backKeyboard = Markup.inlineKeyboard([
+            [Markup.button.callback('◀️ Назад', 'menu:tags')]
+        ]);
+
         if (success) {
             ctx.reply(
                 `✅ Тег "${tag}" добавлен группе "${group.title}".\n\n` +
-                `Теперь вы можете использовать этот тег для выборочной рассылки.`
+                `Теперь вы можете использовать этот тег для выборочной рассылки.`,
+                backKeyboard
             );
             logger.info(`Admin ${userId} added tag "${tag}" to group ${groupId}`);
         } else {
-            ctx.reply(`❌ Не удалось добавить тег. Возможно, он уже существует.`);
+            ctx.reply(`❌ Не удалось добавить тег. Возможно, он уже существует.`, backKeyboard);
         }
     });
 
@@ -72,10 +88,14 @@ export function setupTagCommands(bot) {
         const args = ctx.message.text.replace('/tag_remove', '').trim().split(/\s+/);
 
         if (args.length < 2) {
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:tags')]
+            ]);
             return ctx.reply(
                 '⚠️ Использование: /tag_remove <group_id> <тег>\n\n' +
                 'Пример:\n' +
-                '/tag_remove -1001601437600 новости'
+                '/tag_remove -1001601437600 новости',
+                backKeyboard
             );
         }
 
@@ -83,24 +103,35 @@ export function setupTagCommands(bot) {
         const tag = args.slice(1).join(' ');
 
         if (isNaN(groupId)) {
-            return ctx.reply('❌ Неверный формат ID группы. ID должен быть числом.');
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:tags')]
+            ]);
+            return ctx.reply('❌ Неверный формат ID группы. ID должен быть числом.', backKeyboard);
         }
 
         const group = groupManager.getGroupById(groupId);
         if (!group) {
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:tags')]
+            ]);
             return ctx.reply(
                 `❌ Группа с ID ${groupId} не найдена.\n\n` +
-                'Используйте /groups для просмотра доступных групп.'
+                'Используйте /groups для просмотра доступных групп.',
+                backKeyboard
             );
         }
 
         const success = groupManager.removeTag(groupId, tag);
 
+        const backKeyboard = Markup.inlineKeyboard([
+            [Markup.button.callback('◀️ Назад', 'menu:tags')]
+        ]);
+
         if (success) {
-            ctx.reply(`✅ Тег "${tag}" удален у группы "${group.title}".`);
+            ctx.reply(`✅ Тег "${tag}" удален у группы "${group.title}".`, backKeyboard);
             logger.info(`Admin ${userId} removed tag "${tag}" from group ${groupId}`);
         } else {
-            ctx.reply(`❌ Не удалось удалить тег. Возможно, его нет у этой группы.`);
+            ctx.reply(`❌ Не удалось удалить тег. Возможно, его нет у этой группы.`, backKeyboard);
         }
     });
 
@@ -117,9 +148,13 @@ export function setupTagCommands(bot) {
         const allTags = groupManager.getAllTags();
 
         if (allTags.length === 0) {
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:tags')]
+            ]);
             return ctx.reply(
                 '📋 Нет доступных тегов.\n\n' +
-                'Добавьте теги группам командой /tag_add'
+                'Добавьте теги группам командой /tag_add',
+                backKeyboard
             );
         }
 
@@ -141,8 +176,12 @@ export function setupTagCommands(bot) {
 
         message += `\n💡 Используйте /announce_to <теги> <текст> для рассылки по тегам.`;
 
+        const backKeyboard = Markup.inlineKeyboard([
+            [Markup.button.callback('◀️ Назад', 'menu:tags')]
+        ]);
+
         logger.info(`Admin ${userId} viewed tags list`);
-        ctx.reply(message);
+        ctx.reply(message, backKeyboard);
     });
 }
 

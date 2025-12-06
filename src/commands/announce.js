@@ -18,23 +18,30 @@ export function setupAnnounceCommand(bot) {
             return ctx.reply('❌ У вас нет прав для использования этой команды.');
         }
 
-        // Получаем текст объявления
         const messageText = ctx.message.text.replace('/announce', '').trim();
 
         if (!messageText) {
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:announce')]
+            ]);
             return ctx.reply(
                 '⚠️ Использование: /announce <текст объявления>\n\n' +
                 'Пример:\n' +
-                '/announce Важное объявление для всех участников!'
+                '/announce Важное объявление для всех участников!',
+                backKeyboard
             );
         }
 
         // Проверяем наличие групп
         const groups = groupManager.getGroups();
         if (groups.length === 0) {
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:announce')]
+            ]);
             return ctx.reply(
                 '❌ Нет зарегистрированных групп для рассылки.\n\n' +
-                'Добавьте бота в группы, чтобы начать рассылку.'
+                'Добавьте бота в группы, чтобы начать рассылку.',
+                backKeyboard
             );
         }
 
@@ -125,7 +132,11 @@ export function setupAnnounceCommand(bot) {
             });
         }
 
-        await ctx.editMessageText(reportMessage);
+        const backKeyboard = Markup.inlineKeyboard([
+            [Markup.button.callback('◀️ Назад', 'menu:announce')]
+        ]);
+
+        await ctx.editMessageText(reportMessage, backKeyboard);
         await ctx.answerCbQuery('✅ Рассылка завершена!');
     });
 
@@ -134,7 +145,11 @@ export function setupAnnounceCommand(bot) {
         const userId = ctx.from.id;
         logger.info(`Admin ${userId} cancelled announcement`);
 
-        await ctx.editMessageText('❌ Рассылка отменена.');
+        const backKeyboard = Markup.inlineKeyboard([
+            [Markup.button.callback('◀️ Назад', 'menu:announce')]
+        ]);
+
+        await ctx.editMessageText('❌ Рассылка отменена.', backKeyboard);
         await ctx.answerCbQuery('Отменено');
     });
 }

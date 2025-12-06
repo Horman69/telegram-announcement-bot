@@ -23,12 +23,16 @@ export function setupTemplateCommands(bot) {
         const templateName = ctx.message.text.replace('/template_save', '').trim();
 
         if (!templateName) {
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:templates')]
+            ]);
             return ctx.reply(
                 '⚠️ Использование: /template_save <название>\n\n' +
                 'После ввода команды отправьте текст, который хотите сохранить как шаблон.\n\n' +
                 'Пример:\n' +
                 '/template_save приветствие\n' +
-                'Привет всем! Это стандартное приветствие.'
+                'Привет всем! Это стандартное приветствие.',
+                backKeyboard
             );
         }
 
@@ -64,9 +68,13 @@ export function setupTemplateCommands(bot) {
         const templateNames = Object.keys(templates);
 
         if (templateNames.length === 0) {
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:templates')]
+            ]);
             return ctx.reply(
                 '📋 Список шаблонов пуст.\n\n' +
-                'Создайте шаблон командой /template_save <название>'
+                'Создайте шаблон командой /template_save <название>',
+                backKeyboard
             );
         }
 
@@ -98,28 +106,40 @@ export function setupTemplateCommands(bot) {
         const templateName = ctx.message.text.replace('/template_use', '').trim();
 
         if (!templateName) {
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:templates')]
+            ]);
             return ctx.reply(
                 '⚠️ Использование: /template_use <название>\n\n' +
                 'Пример:\n' +
-                '/template_use приветствие'
+                '/template_use приветствие',
+                backKeyboard
             );
         }
 
         const templateText = templateManager.getTemplate(templateName);
 
         if (!templateText) {
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:templates')]
+            ]);
             return ctx.reply(
                 `❌ Шаблон "${templateName}" не найден.\n\n` +
-                `Используйте /template_list для просмотра доступных шаблонов.`
+                `Используйте /template_list для просмотра доступных шаблонов.`,
+                backKeyboard
             );
         }
 
         // Проверяем наличие групп
         const groups = groupManager.getGroups();
         if (groups.length === 0) {
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:templates')]
+            ]);
             return ctx.reply(
                 '❌ Нет зарегистрированных групп для рассылки.\n\n' +
-                'Добавьте бота в группы, чтобы начать рассылку.'
+                'Добавьте бота в группы, чтобы начать рассылку.',
+                backKeyboard
             );
         }
 
@@ -157,17 +177,25 @@ export function setupTemplateCommands(bot) {
         const templateName = ctx.message.text.replace('/template_delete', '').trim();
 
         if (!templateName) {
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:templates')]
+            ]);
             return ctx.reply(
                 '⚠️ Использование: /template_delete <название>\n\n' +
                 'Пример:\n' +
-                '/template_delete приветствие'
+                '/template_delete приветствие',
+                backKeyboard
             );
         }
 
         if (!templateManager.templateExists(templateName)) {
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:templates')]
+            ]);
             return ctx.reply(
                 `❌ Шаблон "${templateName}" не найден.\n\n` +
-                `Используйте /template_list для просмотра доступных шаблонов.`
+                `Используйте /template_list для просмотра доступных шаблонов.`,
+                backKeyboard
             );
         }
 
@@ -313,13 +341,21 @@ export function setupTemplateCommands(bot) {
             });
         }
 
-        await ctx.editMessageText(reportMessage);
+        // Добавляем кнопку "Назад"
+        const backKeyboard = Markup.inlineKeyboard([
+            [Markup.button.callback('◀️ Назад в меню', 'menu:templates')]
+        ]);
+
+        await ctx.editMessageText(reportMessage, backKeyboard);
         await ctx.answerCbQuery('✅ Рассылка завершена!');
     });
 
     // Обработчик отмены рассылки шаблона
     bot.action('cancel_template', async (ctx) => {
-        await ctx.editMessageText('❌ Рассылка отменена.');
+        const backKeyboard = Markup.inlineKeyboard([
+            [Markup.button.callback('◀️ Назад в меню', 'menu:templates')]
+        ]);
+        await ctx.editMessageText('❌ Рассылка отменена.', backKeyboard);
         await ctx.answerCbQuery('Отменено');
     });
 
@@ -353,19 +389,26 @@ export function setupTemplateCommands(bot) {
 
         const success = templateManager.deleteTemplate(templateName);
 
+        const backKeyboard = Markup.inlineKeyboard([
+            [Markup.button.callback('◀️ Назад в меню', 'menu:templates')]
+        ]);
+
         if (success) {
             await ctx.answerCbQuery('✅ Шаблон удален');
-            await ctx.editMessageText(`✅ Шаблон "${templateName}" успешно удален.`);
+            await ctx.editMessageText(`✅ Шаблон "${templateName}" успешно удален.`, backKeyboard);
             logger.info(`Admin ${userId} deleted template "${templateName}"`);
         } else {
             await ctx.answerCbQuery('❌ Ошибка удаления');
-            await ctx.editMessageText('❌ Не удалось удалить шаблон.');
+            await ctx.editMessageText('❌ Не удалось удалить шаблон.', backKeyboard);
         }
     });
 
     // Обработчик отмены удаления
     bot.action('cancel_delete_template', async (ctx) => {
-        await ctx.editMessageText('❌ Удаление отменено.');
+        const backKeyboard = Markup.inlineKeyboard([
+            [Markup.button.callback('◀️ Назад в меню', 'menu:templates')]
+        ]);
+        await ctx.editMessageText('❌ Удаление отменено.', backKeyboard);
         await ctx.answerCbQuery('Отменено');
     });
 
@@ -411,11 +454,15 @@ export function setupTemplateCommands(bot) {
 
         const success = templateManager.saveTemplate(templateName, templateText);
 
+        const backKeyboard = Markup.inlineKeyboard([
+            [Markup.button.callback('◀️ Назад', 'menu:templates')]
+        ]);
+
         if (success) {
-            ctx.reply(`✅ Шаблон "${templateName}" успешно сохранен!\n\nИспользуйте /template_use ${templateName} для рассылки.`);
+            ctx.reply(`✅ Шаблон "${templateName}" успешно сохранен!\n\nИспользуйте /template_use ${templateName} для рассылки.`, backKeyboard);
             logger.info(`Admin ${userId} saved template "${templateName}"`);
         } else {
-            ctx.reply('❌ Не удалось сохранить шаблон. Попробуйте позже.');
+            ctx.reply('❌ Не удалось сохранить шаблон. Попробуйте позже.', backKeyboard);
         }
 
         // Очищаем состояние

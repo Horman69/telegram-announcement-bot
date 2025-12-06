@@ -22,12 +22,16 @@ export function setupSelectiveAnnounceCommands(bot) {
         const fullText = ctx.message.text.replace('/announce_to', '').trim();
 
         if (!fullText) {
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:announce')]
+            ]);
             return ctx.reply(
                 '⚠️ Использование: /announce_to <теги> <текст>\n\n' +
                 'Теги указываются через запятую, затем текст объявления.\n\n' +
                 'Пример:\n' +
                 '/announce_to новости,важное Срочная новость для всех!\n\n' +
-                'Используйте /tag_list для просмотра доступных тегов.'
+                'Используйте /tag_list для просмотра доступных тегов.',
+                backKeyboard
             );
         }
 
@@ -36,30 +40,43 @@ export function setupSelectiveAnnounceCommands(bot) {
         const firstSpaceIndex = fullText.indexOf(' ');
 
         if (firstSpaceIndex === -1) {
-            return ctx.reply('❌ Не указан текст объявления. Формат: /announce_to <теги> <текст>');
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:announce')]
+            ]);
+            return ctx.reply('❌ Не указан текст объявления. Формат: /announce_to <теги> <текст>', backKeyboard);
         }
 
         const tagsStr = fullText.substring(0, firstSpaceIndex).trim();
         const messageText = fullText.substring(firstSpaceIndex + 1).trim();
 
         if (!messageText) {
-            return ctx.reply('❌ Текст объявления не может быть пустым.');
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:announce')]
+            ]);
+            return ctx.reply('❌ Текст объявления не может быть пустым.', backKeyboard);
         }
 
         // Парсим теги
         const tags = tagsStr.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
 
         if (tags.length === 0) {
-            return ctx.reply('❌ Не указаны теги. Формат: /announce_to <теги> <текст>');
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:announce')]
+            ]);
+            return ctx.reply('❌ Не указаны теги. Формат: /announce_to <теги> <текст>', backKeyboard);
         }
 
         // Получаем группы по тегам
         const targetGroups = groupManager.getGroupsByTags(tags);
 
         if (targetGroups.length === 0) {
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:announce')]
+            ]);
             return ctx.reply(
                 `❌ Нет групп с тегами: ${tags.map(t => `#${t}`).join(', ')}\n\n` +
-                'Используйте /tag_list для просмотра доступных тегов.'
+                'Используйте /tag_list для просмотра доступных тегов.',
+                backKeyboard
             );
         }
 
@@ -104,12 +121,16 @@ export function setupSelectiveAnnounceCommands(bot) {
         const fullText = ctx.message.text.replace('/announce_groups', '').trim();
 
         if (!fullText) {
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:announce')]
+            ]);
             return ctx.reply(
                 '⚠️ Использование: /announce_groups <id1,id2> <текст>\n\n' +
                 'ID групп указываются через запятую, затем текст объявления.\n\n' +
                 'Пример:\n' +
                 '/announce_groups -1001601437600 Сообщение для конкретной группы\n\n' +
-                'Используйте /groups для просмотра ID групп.'
+                'Используйте /groups для просмотра ID групп.',
+                backKeyboard
             );
         }
 
@@ -117,21 +138,30 @@ export function setupSelectiveAnnounceCommands(bot) {
         const firstSpaceIndex = fullText.indexOf(' ');
 
         if (firstSpaceIndex === -1) {
-            return ctx.reply('❌ Не указан текст объявления. Формат: /announce_groups <id1,id2> <текст>');
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:announce')]
+            ]);
+            return ctx.reply('❌ Не указан текст объявления. Формат: /announce_groups <id1,id2> <текст>', backKeyboard);
         }
 
         const idsStr = fullText.substring(0, firstSpaceIndex).trim();
         const messageText = fullText.substring(firstSpaceIndex + 1).trim();
 
         if (!messageText) {
-            return ctx.reply('❌ Текст объявления не может быть пустым.');
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:announce')]
+            ]);
+            return ctx.reply('❌ Текст объявления не может быть пустым.', backKeyboard);
         }
 
         // Парсим ID
         const groupIds = idsStr.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
 
         if (groupIds.length === 0) {
-            return ctx.reply('❌ Не указаны корректные ID групп. Формат: /announce_groups <id1,id2> <текст>');
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:announce')]
+            ]);
+            return ctx.reply('❌ Не указаны корректные ID групп. Формат: /announce_groups <id1,id2> <текст>', backKeyboard);
         }
 
         // Получаем группы по ID
@@ -139,9 +169,13 @@ export function setupSelectiveAnnounceCommands(bot) {
         const targetGroups = allGroups.filter(g => groupIds.includes(g.id));
 
         if (targetGroups.length === 0) {
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:announce')]
+            ]);
             return ctx.reply(
                 `❌ Ни одна из указанных групп не найдена.\n\n` +
-                'Используйте /groups для просмотра доступных групп.'
+                'Используйте /groups для просмотра доступных групп.',
+                backKeyboard
             );
         }
 
@@ -246,7 +280,11 @@ export function setupSelectiveAnnounceCommands(bot) {
             });
         }
 
-        await ctx.editMessageText(reportMessage);
+        const backKeyboard = Markup.inlineKeyboard([
+            [Markup.button.callback('◀️ Назад в меню', 'menu:announce')]
+        ]);
+
+        await ctx.editMessageText(reportMessage, backKeyboard);
         await ctx.answerCbQuery('✅ Рассылка завершена!');
     });
 
@@ -317,7 +355,11 @@ export function setupSelectiveAnnounceCommands(bot) {
             });
         }
 
-        await ctx.editMessageText(reportMessage);
+        const backKeyboard = Markup.inlineKeyboard([
+            [Markup.button.callback('◀️ Назад в меню', 'menu:announce')]
+        ]);
+
+        await ctx.editMessageText(reportMessage, backKeyboard);
         await ctx.answerCbQuery('✅ Рассылка завершена!');
     });
 
@@ -326,7 +368,10 @@ export function setupSelectiveAnnounceCommands(bot) {
         const userId = ctx.from.id;
         logger.info(`Admin ${userId} cancelled selective announcement (tags)`);
 
-        await ctx.editMessageText('❌ Рассылка отменена.');
+        const backKeyboard = Markup.inlineKeyboard([
+            [Markup.button.callback('◀️ Назад в меню', 'menu:announce')]
+        ]);
+        await ctx.editMessageText('❌ Рассылка отменена.', backKeyboard);
         await ctx.answerCbQuery('Отменено');
     });
 
@@ -334,7 +379,10 @@ export function setupSelectiveAnnounceCommands(bot) {
         const userId = ctx.from.id;
         logger.info(`Admin ${userId} cancelled selective announcement (IDs)`);
 
-        await ctx.editMessageText('❌ Рассылка отменена.');
+        const backKeyboard = Markup.inlineKeyboard([
+            [Markup.button.callback('◀️ Назад в меню', 'menu:announce')]
+        ]);
+        await ctx.editMessageText('❌ Рассылка отменена.', backKeyboard);
         await ctx.answerCbQuery('Отменено');
     });
 }

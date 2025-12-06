@@ -1,3 +1,4 @@
+import { Markup } from 'telegraf';
 import { isAdmin } from '../config/admins.js';
 import groupManager from '../services/groupManager.js';
 import logger from '../services/logger.js';
@@ -19,9 +20,13 @@ export function setupGroupsCommand(bot) {
         const groups = groupManager.getGroups();
 
         if (groups.length === 0) {
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:announce')]
+            ]);
             return ctx.reply(
                 '📋 Список групп пуст.\n\n' +
-                'Добавьте бота в группу, и она автоматически появится в списке.'
+                'Добавьте бота в группу, и она автоматически появится в списке.',
+                backKeyboard
             );
         }
 
@@ -41,7 +46,11 @@ export function setupGroupsCommand(bot) {
             message += `   Добавлена: ${addedDate}\n\n`;
         });
 
+        const backKeyboard = Markup.inlineKeyboard([
+            [Markup.button.callback('◀️ Назад', 'menu:announce')]
+        ]);
+
         logger.info(`Admin ${userId} viewed groups list`);
-        ctx.reply(message, { parse_mode: 'HTML' });
+        ctx.reply(message, { parse_mode: 'HTML', ...backKeyboard });
     });
 }

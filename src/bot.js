@@ -11,6 +11,7 @@ import { setupSelectiveAnnounceCommands } from './commands/announceSelective.js'
 import { setupAnnounceMediaCommand } from './commands/announceMedia.js';
 import { setupMenuCommand } from './commands/menu.js';
 import { setupAddAdminCommand } from './commands/addadmin.js';
+import { setupRemoveAdminCommand } from './commands/removeadmin.js';
 import menuBuilder from './services/menuBuilder.js';
 import { isAdmin } from './config/admins.js';
 
@@ -99,13 +100,14 @@ function initializeCommands() {
     // Регистрируем команды
     setupMenuCommand(bot);
     setupMyIdCommand(bot);
+    setupAddAdminCommand(bot);
+    setupRemoveAdminCommand(bot);
     setupGroupsCommand(bot);
     setupAnnounceCommand(bot);
     setupTemplateCommands(bot);
     setupTagCommands(bot);
     setupSelectiveAnnounceCommands(bot);
     setupAnnounceMediaCommand(bot);
-    setupAddAdminCommand(bot);
 
     logger.success('All commands registered');
 }

@@ -1,4 +1,5 @@
 import logger from '../services/logger.js';
+import { Markup } from 'telegraf';
 
 /**
  * Команда /myid
@@ -12,13 +13,18 @@ export function setupMyIdCommand(bot) {
 
         logger.info(`User ${userId} requested their ID`);
 
+        const backKeyboard = Markup.inlineKeyboard([
+            [Markup.button.callback('◀️ Назад', 'menu:user')]
+        ]);
+
         ctx.reply(
             `🆔 Ваш Telegram ID:\n\n` +
             `ID: <code>${userId}</code>\n` +
             `Имя: ${firstName}\n` +
             `Username: ${username}\n\n` +
             `Скопируйте ID и добавьте его в файл <code>src/config/admins.js</code> для получения прав администратора.`,
-            { parse_mode: 'HTML' }
+            { parse_mode: 'HTML', ...backKeyboard }
         );
     });
 }
+

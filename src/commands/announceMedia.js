@@ -22,9 +22,13 @@ export function setupAnnounceMediaCommand(bot) {
         // Проверяем наличие групп
         const groups = groupManager.getGroups();
         if (groups.length === 0) {
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:announce')]
+            ]);
             return ctx.reply(
                 '❌ Нет зарегистрированных групп для рассылки.\n\n' +
-                'Добавьте бота в группы, чтобы начать рассылку.'
+                'Добавьте бота в группы, чтобы начать рассылку.',
+                backKeyboard
             );
         }
 
@@ -36,13 +40,18 @@ export function setupAnnounceMediaCommand(bot) {
 
         logger.info(`Admin ${userId} started media announcement creation`);
 
+        const backKeyboard = Markup.inlineKeyboard([
+            [Markup.button.callback('◀️ Назад', 'menu:announce')]
+        ]);
+
         ctx.reply(
             '📎 Отправьте медиа-файл для объявления:\n\n' +
             '• Фото 📷\n' +
             '• Видео 🎥\n' +
             '• Документ 📄\n' +
             '• Аудио 🎵\n\n' +
-            'Отправьте /cancel для отмены.'
+            'Отправьте /cancel для отмены.',
+            backKeyboard
         );
     });
 
@@ -227,7 +236,10 @@ export function setupAnnounceMediaCommand(bot) {
             }
         } catch (error) {
             logger.error('Error sending media preview:', error);
-            ctx.reply('❌ Ошибка при отправке превью. Попробуйте снова.');
+            const backKeyboard = Markup.inlineKeyboard([
+                [Markup.button.callback('◀️ Назад', 'menu:announce')]
+            ]);
+            ctx.reply('❌ Ошибка при отправке превью. Попробуйте снова.', backKeyboard);
             conversationState.clearState(userId);
         }
     });

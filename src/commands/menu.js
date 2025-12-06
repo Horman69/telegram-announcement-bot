@@ -1,6 +1,9 @@
 import logger from '../services/logger.js';
 import menuBuilder from '../services/menuBuilder.js';
 import { isAdmin } from '../config/admins.js';
+import { startAddAdminProcess } from './addadmin.js';
+import { startRemoveAdminProcess } from './removeadmin.js';
+import { Markup } from 'telegraf';
 
 /**
  * Настройка команды /menu и обработчиков inline-кнопок
@@ -225,7 +228,7 @@ export function setupMenuCommand(bot) {
 
                     // Импортируем conversationState
                     const conversationState = (await import('../services/conversationState.js')).default;
-                    
+
                     // Устанавливаем состояние диалога для запуска процесса добавления админа
                     conversationState.setState(userId, { action: 'waiting_new_admin_id' });
 
@@ -490,6 +493,135 @@ export function setupMenuCommand(bot) {
                     await ctx.answerCbQuery('Список тегов');
                     break;
 
+                // === ДЕЙСТВИЯ УПРАВЛЕНИЯ АДМИНИСТРАТОРАМИ ===
+
+                case 'action:admin_add':
+                    // Добавить администратора
+                    if (!userIsAdmin) {
+                        await ctx.answerCbQuery('❌ У вас нет прав администратора', { show_alert: true });
+                        return;
+                    }
+
+                    // Запускаем процесс добавления администратора
+                    const started = startAddAdminProcess(userId);
+
+                    if (started) {
+                        // Получаем текущий список администраторов
+                        const { getAllAdmins } = await import('../config/admins.js');
+                        const adminsList = getAllAdmins();
+
+                        // Пытаемся получить информацию о каждом администраторе
+                        let adminsInfo = '📋 Текущие администраторы:\n\n';
+                        for (let i = 0; i < adminsList.length; i++) {
+                            const adminId = adminsList[i];
+                            try {
+                                const chatMember = await ctx.telegram.getChat(adminId);
+                                const name = chatMember.first_name || 'Неизвестно';
+                                const username = chatMember.username ? `@${chatMember.username}` : '';
+                                adminsInfo += `${i + 1}. ${name} ${username}\n   ID: ${adminId}\n`;
+                            } catch (error) {
+                                adminsInfo += `${i + 1}. ID: ${adminId}\n`;
+                            }
+                        }
+
+                        // Создаем кнопку "Назад"
+                        const backKeyboard = Markup.inlineKeyboard([
+                            [Markup.button.callback('◀️ Назад', 'menu:admins')]
+                        ]);
+
+                        // Редактируем текущее сообщение с инструкцией
+                        await ctx.editMessageText(
+                            '👥 Добавление нового администратора\n\n' +
+                            adminsInfo + '\n' +
+                            '━━━━━━━━━━━━━━━━━━━━\n\n' +
+                            'Отправьте Telegram ID пользователя, которого хотите добавить в администраторы.\n\n' +
+                            '💡 Пользователь может узнать свой ID с помощью команды /myid\n\n' +
+                            'Для отмены отправьте /cancel',
+                            backKeyboard
+                        );
+                        await ctx.answerCbQuery('Запускаю процесс добавления...');
+
+                        logger.info(`Admin ${userId} started admin addition process via menu button`);
+                    } else {
+                        await ctx.answerCbQuery('❌ Ошибка запуска процесса', { show_alert: true });
+                    }
+                    break;
+
+                case 'action:admin_remove':
+                    // Удалить администратора
+                    if (!userIsAdmin) {
+                        await ctx.answerCbQuery('❌ У вас нет прав администратора', { show_alert: true });
+                        return;
+                    }
+
+                    // Запускаем процесс удаления администратора
+                    const removeStarted = startRemoveAdminProcess(userId);
+
+                    if (removeStarted) {
+                        // Получаем текущий список администраторов
+                        const { getAllAdmins: getAllAdminsForRemove } = await import('../config/admins.js');
+                        const adminsListForRemove = getAllAdminsForRemove();
+
+                        // Пытаемся получить информацию о каждом администраторе
+                        let adminsInfoForRemove = '📋 Текущие администраторы:\n\n';
+                        for (let i = 0; i < adminsListForRemove.length; i++) {
+                            const adminId = adminsListForRemove[i];
+                            try {
+                                const chatMember = await ctx.telegram.getChat(adminId);
+                                const name = chatMember.first_name || 'Неизвестно';
+                                const username = chatMember.username ? `@${chatMember.username}` : '';
+                                adminsInfoForRemove += `${i + 1}. ${name} ${username}\n   ID: ${adminId}\n`;
+                            } catch (error) {
+                                adminsInfoForRemove += `${i + 1}. ID: ${adminId}\n`;
+                            }
+                        }
+
+                        // Создаем кнопку "Назад"
+                        const backKeyboardRemove = Markup.inlineKeyboard([
+                            [Markup.button.callback('◀️ Назад', 'menu:admins')]
+                        ]);
+
+                        // Редактируем текущее сообщение с инструкцией
+                        await ctx.editMessageText(
+                            '🗑️ Удаление администратора\n\n' +
+                            adminsInfoForRemove + '\n' +
+                            '━━━━━━━━━━━━━━━━━━━━\n\n' +
+                            'Отправьте Telegram ID пользователя, которого хотите удалить из администраторов.\n\n' +
+                            '⚠️ Вы не можете удалить самого себя\n' +
+                            '⚠️ Нельзя удалить последнего администратора\n\n' +
+                            'Для отмены отправьте /cancel',
+                            backKeyboardRemove
+                        );
+                        await ctx.answerCbQuery('Запускаю процесс удаления...');
+
+                        logger.info(`Admin ${userId} started admin removal process via menu button`);
+                    } else {
+                        await ctx.answerCbQuery('❌ Ошибка запуска процесса', { show_alert: true });
+                    }
+                    break;
+
+                case 'action:admin_list':
+                    // Список администраторов
+                    if (!userIsAdmin) {
+                        await ctx.answerCbQuery('❌ У вас нет прав администратора', { show_alert: true });
+                        return;
+                    }
+
+                    // Импортируем функцию для получения списка админов
+                    const { getAllAdmins } = await import('../config/admins.js');
+                    const adminsList = getAllAdmins();
+
+                    let adminListText = `📋 Список администраторов\n\n`;
+                    adminListText += `Всего администраторов: ${adminsList.length}\n\n`;
+
+                    adminsList.forEach((adminId, index) => {
+                        adminListText += `${index + 1}. ID: ${adminId}\n`;
+                    });
+
+                    const adminListKeyboard = menuBuilder.getAdminManagementMenu();
+                    await ctx.editMessageText(adminListText, adminListKeyboard);
+                    await ctx.answerCbQuery('Список администраторов');
+                    break;
 
                 default:
                     logger.warn(`Unknown menu action: ${action}`);

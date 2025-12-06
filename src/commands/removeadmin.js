@@ -1,10 +1,10 @@
 import logger from '../services/logger.js';
-import { isAdmin, addAdmin } from '../config/admins.js';
+import { isAdmin, removeAdmin } from '../config/admins.js';
 import { Markup } from 'telegraf';
 import conversationState from '../services/conversationState.js';
 
 /**
- * Состояния процесса добавления администратора
+ * Состояния процесса удаления администратора
  */
 const STATES = {
     IDLE: 'idle',
@@ -13,28 +13,28 @@ const STATES = {
 };
 
 /**
- * Настройка команды /addadmin
+ * Настройка команды /removeadmin
  * @param {Object} bot - Экземпляр бота Telegraf
  */
-export function setupAddAdminCommand(bot) {
-    // Команда /addadmin - начало процесса добавления администратора
-    bot.command('addadmin', async (ctx) => {
+export function setupRemoveAdminCommand(bot) {
+    // Команда /removeadmin - начало процесса удаления администратора
+    bot.command('removeadmin', async (ctx) => {
         try {
             const userId = ctx.from?.id;
 
             // Проверка на наличие ID пользователя
             if (!userId) {
-                logger.warn('AddAdmin command: User ID not found');
+                logger.warn('RemoveAdmin command: User ID not found');
                 return ctx.reply('❌ Ошибка: не удалось определить пользователя');
             }
 
             // Проверка прав администратора
             if (!isAdmin(userId)) {
-                logger.warn(`User ${userId} tried to use /addadmin without admin rights`);
+                logger.warn(`User ${userId} tried to use /removeadmin without admin rights`);
                 return ctx.reply('❌ У вас нет прав для выполнения этой команды');
             }
 
-            logger.info(`Admin ${userId} started /addadmin process`);
+            logger.info(`Admin ${userId} started /removeadmin process`);
 
             // Получаем текущий список администраторов
             const { getAllAdmins } = await import('../config/admins.js');
@@ -56,39 +56,27 @@ export function setupAddAdminCommand(bot) {
 
             // Устанавливаем состояние ожидания ID
             conversationState.setState(userId, {
-                action: 'add_admin',
+                action: 'remove_admin',
                 state: STATES.WAITING_FOR_ID,
                 adminId: userId
             });
 
             await ctx.reply(
-                '👥 Добавление нового администратора\n\n' +
+                '🗑️ Удаление администратора\n\n' +
                 adminsInfo + '\n' +
                 '━━━━━━━━━━━━━━━━━━━━\n\n' +
-                'Отправьте Telegram ID пользователя, которого хотите добавить в администраторы.\n\n' +
-                '💡 Пользователь может узнать свой ID с помощью команды /myid\n\n' +
+                'Отправьте Telegram ID пользователя, которого хотите удалить из администраторов.\n\n' +
+                '⚠️ Вы не можете удалить самого себя\n' +
+                '⚠️ Нельзя удалить последнего администратора\n\n' +
                 'Для отмены отправьте /cancel'
             );
         } catch (error) {
-            logger.error('Error in /addadmin command:', error);
+            logger.error('Error in /removeadmin command:', error);
             ctx.reply('❌ Произошла ошибка. Попробуйте позже.');
         }
     });
 
-    // Команда /cancel - отмена процесса
-    bot.command('cancel', async (ctx) => {
-        const userId = ctx.from?.id;
-
-        if (conversationState.hasState(userId)) {
-            conversationState.clearState(userId);
-            logger.info(`User ${userId} cancelled admin addition process`);
-            await ctx.reply('❌ Процесс добавления администратора отменён');
-        } else {
-            await ctx.reply('ℹ️ Нет активного процесса для отмены');
-        }
-    });
-
-    // Обработчик текстовых сообщений для процесса добавления админа
+    // Обработчик текстовых сообщений для процесса удаления админа
     bot.on('text', async (ctx, next) => {
         try {
             const userId = ctx.from?.id;
@@ -96,7 +84,7 @@ export function setupAddAdminCommand(bot) {
 
             // Проверяем, есть ли активное состояние для пользователя
             const userState = conversationState.getState(userId);
-            if (!userState || userState.action !== 'add_admin') {
+            if (!userState || userState.action !== 'remove_admin') {
                 return next(); // Передаем управление следующему обработчику
             }
 
@@ -110,18 +98,18 @@ export function setupAddAdminCommand(bot) {
                 await handleIdInput(ctx, userId, text);
             }
         } catch (error) {
-            logger.error('Error handling text in addadmin process:', error);
+            logger.error('Error handling text in removeadmin process:', error);
             return next();
         }
     });
 
     // Обработчики callback-запросов для кнопок подтверждения
-    bot.action('addadmin:confirm', async (ctx) => {
+    bot.action('removeadmin:confirm', async (ctx) => {
         try {
             const userId = ctx.from?.id;
 
             if (!conversationState.hasState(userId)) {
-                await ctx.answerCbQuery('❌ Сессия истекла. Начните заново с /addadmin');
+                await ctx.answerCbQuery('❌ Сессия истекла. Начните заново с /removeadmin');
                 return;
             }
 
@@ -132,10 +120,10 @@ export function setupAddAdminCommand(bot) {
                 return;
             }
 
-            await ctx.answerCbQuery('⏳ Добавляю администратора...');
+            await ctx.answerCbQuery('⏳ Удаляю администратора...');
 
-            // Добавляем администратора
-            const result = await addAdmin(userState.newAdminId);
+            // Удаляем администратора
+            const result = await removeAdmin(userState.removeAdminId);
 
             // Создаем кнопку "Назад"
             const backKeyboard = Markup.inlineKeyboard([
@@ -144,30 +132,30 @@ export function setupAddAdminCommand(bot) {
 
             if (result.success) {
                 await ctx.editMessageText(
-                    `✅ Администратор успешно добавлен!\n\n` +
-                    `ID: ${userState.newAdminId}\n\n` +
-                    `Пользователь теперь имеет полный доступ ко всем административным функциям бота.`,
+                    `✅ Администратор успешно удалён!\n\n` +
+                    `ID: ${userState.removeAdminId}\n\n` +
+                    `Пользователь больше не имеет доступа к административным функциям бота.`,
                     backKeyboard
                 );
-                logger.success(`Admin ${userId} successfully added new admin ${userState.newAdminId}`);
+                logger.success(`Admin ${userId} successfully removed admin ${userState.removeAdminId}`);
             } else {
                 await ctx.editMessageText(
-                    `❌ Ошибка при добавлении администратора\n\n` +
+                    `❌ Ошибка при удалении администратора\n\n` +
                     `Причина: ${result.error}`,
                     backKeyboard
                 );
-                logger.error(`Failed to add admin ${userState.newAdminId}: ${result.error}`);
+                logger.error(`Failed to remove admin ${userState.removeAdminId}: ${result.error}`);
             }
 
             // Очищаем состояние
             conversationState.clearState(userId);
         } catch (error) {
-            logger.error('Error in addadmin:confirm handler:', error);
+            logger.error('Error in removeadmin:confirm handler:', error);
             await ctx.answerCbQuery('❌ Произошла ошибка');
         }
     });
 
-    bot.action('addadmin:cancel', async (ctx) => {
+    bot.action('removeadmin:cancel', async (ctx) => {
         try {
             const userId = ctx.from?.id;
 
@@ -180,33 +168,33 @@ export function setupAddAdminCommand(bot) {
                 ]);
 
                 await ctx.editMessageText(
-                    '❌ Добавление администратора отменено',
+                    '❌ Удаление администратора отменено',
                     backKeyboard
                 );
-                logger.info(`User ${userId} cancelled admin addition via button`);
+                logger.info(`User ${userId} cancelled admin removal via button`);
             } else {
                 await ctx.answerCbQuery('❌ Сессия уже завершена');
             }
         } catch (error) {
-            logger.error('Error in addadmin:cancel handler:', error);
+            logger.error('Error in removeadmin:cancel handler:', error);
             await ctx.answerCbQuery('❌ Произошла ошибка');
         }
     });
 
-    logger.success('AddAdmin command registered');
+    logger.success('RemoveAdmin command registered');
 }
 
 /**
- * Обработка ввода ID администратора
+ * Обработка ввода ID администратора для удаления
  */
 async function handleIdInput(ctx, userId, text) {
     const userState = conversationState.getState(userId);
 
     // Парсим ID
-    const newAdminId = parseInt(text.trim(), 10);
+    const removeAdminId = parseInt(text.trim(), 10);
 
     // Валидация
-    if (isNaN(newAdminId) || newAdminId <= 0) {
+    if (isNaN(removeAdminId) || removeAdminId <= 0) {
         const backKeyboard = Markup.inlineKeyboard([
             [Markup.button.callback('◀️ Назад', 'menu:admins')]
         ]);
@@ -220,78 +208,77 @@ async function handleIdInput(ctx, userId, text) {
         return;
     }
 
-    // Проверка на попытку добавить самого себя
-    if (newAdminId === userId) {
+    // Проверка на попытку удалить самого себя
+    if (removeAdminId === userId) {
         const backKeyboard = Markup.inlineKeyboard([
             [Markup.button.callback('◀️ Назад', 'menu:admins')]
         ]);
         await ctx.reply(
-            '❌ Вы не можете добавить самого себя\n\n' +
-            'Вы уже являетесь администратором.\n\n' +
+            '❌ Вы не можете удалить самого себя\n\n' +
+            'Для удаления своих прав администратора обратитесь к другому администратору.\n\n' +
             'Попробуйте снова или отправьте /cancel для отмены.',
             backKeyboard
         );
-        logger.warn(`User ${userId} tried to add themselves as admin`);
+        logger.warn(`User ${userId} tried to remove themselves as admin`);
         return;
     }
 
-    // Проверка на дубликат
-    if (isAdmin(newAdminId)) {
+    // Проверка на существование администратора
+    if (!isAdmin(removeAdminId)) {
         const backKeyboard = Markup.inlineKeyboard([
             [Markup.button.callback('◀️ Назад', 'menu:admins')]
         ]);
         await ctx.reply(
-            '❌ Пользователь уже является администратором\n\n' +
-            `ID ${newAdminId} уже есть в списке администраторов.\n\n` +
+            '❌ Пользователь не является администратором\n\n' +
+            `ID ${removeAdminId} не найден в списке администраторов.\n\n` +
             'Попробуйте снова или отправьте /cancel для отмены.',
             backKeyboard
         );
-        logger.warn(`User ${userId} tried to add existing admin: ${newAdminId}`);
+        logger.warn(`User ${userId} tried to remove non-existent admin: ${removeAdminId}`);
         return;
     }
 
     // Обновляем состояние
     conversationState.setState(userId, {
-        action: 'add_admin',
+        action: 'remove_admin',
         state: STATES.WAITING_FOR_CONFIRMATION,
-        newAdminId: newAdminId,
+        removeAdminId: removeAdminId,
         adminId: userId
     });
 
     // Создаем кнопки подтверждения
     const confirmKeyboard = Markup.inlineKeyboard([
         [
-            Markup.button.callback('✅ Да, добавить', 'addadmin:confirm'),
-            Markup.button.callback('❌ Отмена', 'addadmin:cancel')
+            Markup.button.callback('✅ Да, удалить', 'removeadmin:confirm'),
+            Markup.button.callback('❌ Отмена', 'removeadmin:cancel')
         ]
     ]);
 
     await ctx.reply(
-        `✅ ID принят\n\n` +
-        `Вы хотите добавить пользователя с ID ${newAdminId} в список администраторов?\n\n` +
-        `⚠️ После добавления пользователь получит полный доступ ко всем административным функциям бота.`,
+        `⚠️ Подтверждение удаления\n\n` +
+        `Вы действительно хотите удалить пользователя с ID ${removeAdminId} из списка администраторов?\n\n` +
+        `После удаления пользователь потеряет доступ ко всем административным функциям бота.`,
         confirmKeyboard
     );
 
-    logger.info(`User ${userId} requested to add admin ${newAdminId}, waiting for confirmation`);
+    logger.info(`User ${userId} requested to remove admin ${removeAdminId}, waiting for confirmation`);
 }
 
 /**
- * Запустить процесс добавления администратора (для использования из других модулей)
+ * Запустить процесс удаления администратора (для использования из других модулей)
  * @param {number} userId - ID пользователя, который запускает процесс
  */
-export function startAddAdminProcess(userId) {
+export function startRemoveAdminProcess(userId) {
     if (!isAdmin(userId)) {
         return false;
     }
 
     conversationState.setState(userId, {
-        action: 'add_admin',
+        action: 'remove_admin',
         state: STATES.WAITING_FOR_ID,
         adminId: userId
     });
 
-    logger.info(`Admin ${userId} started /addadmin process`);
+    logger.info(`Admin ${userId} started /removeadmin process`);
     return true;
 }
-
