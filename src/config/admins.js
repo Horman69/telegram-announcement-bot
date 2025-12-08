@@ -15,7 +15,7 @@ const __dirname = path.dirname(__filename);
 export const ADMIN_IDS = [
     221615370, // Руслан (@norman_p3)
     260638695, // Razmoik
-    5212306481
+    
 ];
 
 /**
