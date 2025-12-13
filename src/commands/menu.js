@@ -148,6 +148,21 @@ export function setupMenuCommand(bot) {
                     await ctx.answerCbQuery('Администраторы');
                     break;
 
+                case 'group_management':
+                    // Проверяем права администратора
+                    if (!userIsAdmin) {
+                        await ctx.answerCbQuery('❌ У вас нет прав администратора', { show_alert: true });
+                        return;
+                    }
+
+                    // Открываем меню управления группами
+                    const groupMgmtMenuText = menuBuilder.getGroupManagementMenuText();
+                    const groupMgmtMenuKeyboard = menuBuilder.getGroupManagementMenu();
+
+                    await ctx.editMessageText(groupMgmtMenuText, groupMgmtMenuKeyboard);
+                    await ctx.answerCbQuery('Управление группами');
+                    break;
+
 
                 case 'action:start':
                     // Действие: О боте - редактируем сообщение меню
@@ -266,6 +281,7 @@ export function setupMenuCommand(bot) {
                     await ctx.answerCbQuery('Список администраторов');
                     break;
 
+
                 // === ДЕЙСТВИЯ РАССЫЛКИ ===
 
                 case 'action:announce_all':
@@ -342,23 +358,48 @@ export function setupMenuCommand(bot) {
                     break;
 
                 case 'action:groups':
-                    // Список групп
+                    // Список групп - показываем фактический список
                     if (!userIsAdmin) {
                         await ctx.answerCbQuery('❌ У вас нет прав администратора', { show_alert: true });
                         return;
                     }
 
-                    const groupsText = `📊 Список групп\n\n` +
-                        `Чтобы посмотреть все зарегистрированные группы, используйте:\n\n` +
-                        `/groups\n\n` +
-                        `Вы увидите:\n` +
-                        `• Название группы\n` +
-                        `• ID группы\n` +
-                        `• Теги группы\n` +
-                        `• Дату добавления`;
+                    const groupManagerForList = (await import('../services/groupManager.js')).default;
+                    const groupsForList = groupManagerForList.getGroups();
 
-                    const groupsKeyboard = menuBuilder.getAnnouncementMenu();
-                    await ctx.editMessageText(groupsText, groupsKeyboard);
+                    if (groupsForList.length === 0) {
+                        const emptyGroupsListKeyboard = menuBuilder.getAnnouncementMenu();
+                        await ctx.editMessageText(
+                            '📋 Список групп пуст.\n\n' +
+                            'Добавьте бота в группу, и она автоматически появится в списке.\n' +
+                            'Или добавьте группу вручную через меню управления группами.',
+                            emptyGroupsListKeyboard
+                        );
+                        await ctx.answerCbQuery('Список групп пуст');
+                        return;
+                    }
+
+                    let groupsListMessage = `📋 Зарегистрированные группы (${groupsForList.length}):\n\n`;
+
+                    groupsForList.forEach((group, index) => {
+                        const addedDate = new Date(group.addedAt).toLocaleDateString('ru-RU');
+                        groupsListMessage += `${index + 1}. ${group.title}\n`;
+                        groupsListMessage += `   ID: <code>${group.id}</code>\n`;
+
+                        if (group.tags && group.tags.length > 0) {
+                            const tagsStr = group.tags.map(tag => `#${tag}`).join(', ');
+                            groupsListMessage += `   Теги: ${tagsStr}\n`;
+                        }
+
+                        if (group.addedManually) {
+                            groupsListMessage += `   📝 Добавлена вручную\n`;
+                        }
+
+                        groupsListMessage += `   Добавлена: ${addedDate}\n\n`;
+                    });
+
+                    const groupsAnnouncementKeyboard = menuBuilder.getAnnouncementMenu();
+                    await ctx.editMessageText(groupsListMessage, { parse_mode: 'HTML', ...groupsAnnouncementKeyboard });
                     await ctx.answerCbQuery('Список групп');
                     break;
 
@@ -624,6 +665,162 @@ export function setupMenuCommand(bot) {
                     const adminListKeyboard = menuBuilder.getAdminManagementMenu();
                     await ctx.editMessageText(adminListText, adminListKeyboard);
                     await ctx.answerCbQuery('Список администраторов');
+                    break;
+
+                // === ДЕЙСТВИЯ УПРАВЛЕНИЯ ГРУППАМИ ===
+
+                case 'action:group_list':
+                    // Список групп
+                    if (!userIsAdmin) {
+                        await ctx.answerCbQuery('❌ У вас нет прав администратора', { show_alert: true });
+                        return;
+                    }
+
+                    const groupManager = (await import('../services/groupManager.js')).default;
+                    const groups = groupManager.getGroups();
+
+                    if (groups.length === 0) {
+                        const emptyGroupsKeyboard = menuBuilder.getGroupManagementMenu();
+                        await ctx.editMessageText(
+                            '📋 Список групп пуст.\n\n' +
+                            'Добавьте бота в группу, и она автоматически появится в списке.\n' +
+                            'Или добавьте группу вручную.',
+                            emptyGroupsKeyboard
+                        );
+                        await ctx.answerCbQuery('Список групп пуст');
+                        return;
+                    }
+
+                    let groupsListText = `📋 Зарегистрированные группы (${groups.length}):\n\n`;
+
+                    groups.forEach((group, index) => {
+                        const addedDate = new Date(group.addedAt).toLocaleDateString('ru-RU');
+                        groupsListText += `${index + 1}. ${group.title}\n`;
+                        groupsListText += `   ID: <code>${group.id}</code>\n`;
+
+                        if (group.tags && group.tags.length > 0) {
+                            const tagsStr = group.tags.map(tag => `#${tag}`).join(', ');
+                            groupsListText += `   Теги: ${tagsStr}\n`;
+                        }
+
+                        if (group.addedManually) {
+                            groupsListText += `   📝 Добавлена вручную\n`;
+                        }
+
+                        groupsListText += `   Добавлена: ${addedDate}\n\n`;
+                    });
+
+                    // Создаем кнопки для удаления
+                    const deleteButtons = [];
+                    groups.forEach((group) => {
+                        deleteButtons.push([
+                            Markup.button.callback(`🗑️ Удалить "${group.title}"`, `delete_group:${group.id}`)
+                        ]);
+                    });
+                    deleteButtons.push([Markup.button.callback('◀️ Назад', 'menu:group_management')]);
+
+                    const groupsListKeyboard = Markup.inlineKeyboard(deleteButtons);
+
+                    await ctx.editMessageText(groupsListText, { parse_mode: 'HTML', ...groupsListKeyboard });
+                    await ctx.answerCbQuery('Список групп');
+                    break;
+
+                case 'action:group_add':
+                    // Добавить группу
+                    if (!userIsAdmin) {
+                        await ctx.answerCbQuery('❌ У вас нет прав администратора', { show_alert: true });
+                        return;
+                    }
+
+                    const { startAddGroupProcess } = await import('./addgroup.js');
+                    const addGroupStarted = startAddGroupProcess(userId);
+
+                    if (addGroupStarted) {
+                        const addGroupKeyboard = Markup.inlineKeyboard([
+                            [Markup.button.callback('◀️ Назад', 'menu:group_management')]
+                        ]);
+
+                        await ctx.editMessageText(
+                            '➕ Добавление группы вручную\n\n' +
+                            'Отправьте ID группы, которую хотите добавить в список рассылки.\n\n' +
+                            '💡 Используйте команду /groupid в группе, чтобы узнать её ID\n\n' +
+                            'Пример: <code>-1001234567890</code>\n\n' +
+                            'Для отмены отправьте /cancel',
+                            { parse_mode: 'HTML', ...addGroupKeyboard }
+                        );
+                        await ctx.answerCbQuery('Запускаю процесс добавления...');
+                        logger.info(`Admin ${userId} started add group process via menu`);
+                    } else {
+                        await ctx.answerCbQuery('❌ Ошибка запуска процесса', { show_alert: true });
+                    }
+                    break;
+
+                case 'action:group_remove':
+                    // Удалить группу
+                    if (!userIsAdmin) {
+                        await ctx.answerCbQuery('❌ У вас нет прав администратора', { show_alert: true });
+                        return;
+                    }
+
+                    const groupManagerForRemove = (await import('../services/groupManager.js')).default;
+                    const groupsForRemove = groupManagerForRemove.getGroups();
+
+                    if (groupsForRemove.length === 0) {
+                        await ctx.answerCbQuery('❌ Нет групп для удаления', { show_alert: true });
+                        return;
+                    }
+
+                    const { startRemoveGroupProcess } = await import('./removegroup.js');
+                    const removeGroupStarted = startRemoveGroupProcess(userId);
+
+                    if (removeGroupStarted) {
+                        let removeMessage = '🗑️ Удаление группы из списка рассылки\n\n';
+                        removeMessage += 'Отправьте ID группы, которую хотите удалить:\n\n';
+
+                        groupsForRemove.forEach((group, index) => {
+                            removeMessage += `${index + 1}. ${group.title}\n`;
+                            removeMessage += `   ID: <code>${group.id}</code>\n\n`;
+                        });
+
+                        removeMessage += 'Для отмены отправьте /cancel';
+
+                        const removeGroupKeyboard = Markup.inlineKeyboard([
+                            [Markup.button.callback('◀️ Назад', 'menu:group_management')]
+                        ]);
+
+                        await ctx.editMessageText(removeMessage, { parse_mode: 'HTML', ...removeGroupKeyboard });
+                        await ctx.answerCbQuery('Запускаю процесс удаления...');
+                        logger.info(`Admin ${userId} started remove group process via menu`);
+                    } else {
+                        await ctx.answerCbQuery('❌ Ошибка запуска процесса', { show_alert: true });
+                    }
+                    break;
+
+                case 'action:group_id':
+                    // Инструкция по получению ID группы
+                    if (!userIsAdmin) {
+                        await ctx.answerCbQuery('❌ У вас нет прав администратора', { show_alert: true });
+                        return;
+                    }
+
+                    const groupIdText = `🆔 Как узнать ID группы\n\n` +
+                        `1. Откройте группу в Telegram\n` +
+                        `2. Отправьте в группе команду: /groupid\n` +
+                        `3. Бот ответит с ID группы\n\n` +
+                        `💡 Команда работает только в групповых чатах\n\n` +
+                        `Полученный ID можно использовать для:\n` +
+                        `• Ручного добавления группы\n` +
+                        `• Рассылки по конкретным группам\n` +
+                        `• Управления тегами`;
+
+                    // Показываем только кнопку "Назад" вместо полного меню
+                    const groupIdKeyboard = Markup.inlineKeyboard([
+                        [Markup.button.callback('◀️ Назад', 'menu:group_management')]
+                    ]);
+
+                    logger.info(`Showing group ID instruction to user ${userId}`);
+                    await ctx.editMessageText(groupIdText, groupIdKeyboard);
+                    await ctx.answerCbQuery('Инструкция по ID группы');
                     break;
 
                 default:

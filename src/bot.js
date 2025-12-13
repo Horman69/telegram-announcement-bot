@@ -12,8 +12,13 @@ import { setupAnnounceMediaCommand } from './commands/announceMedia.js';
 import { setupMenuCommand } from './commands/menu.js';
 import { setupAddAdminCommand } from './commands/addadmin.js';
 import { setupRemoveAdminCommand } from './commands/removeadmin.js';
+import { setupGroupIdCommand } from './commands/groupid.js';
+import { setupAddGroupCommand } from './commands/addgroup.js';
+import { setupRemoveGroupCommand } from './commands/removegroup.js';
 import menuBuilder from './services/menuBuilder.js';
 import { isAdmin } from './config/admins.js';
+import chatTypeCheck from './middleware/chatTypeCheck.js';
+import adminCheck from './middleware/adminCheck.js';
 
 // Загружаем переменные окружения
 dotenv.config();
@@ -34,6 +39,19 @@ const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN, {
         timeout: 60000 // 60 секунд
     }
 });
+
+/**
+ * Инициализация middleware
+ */
+function initializeMiddleware() {
+    // Применяем проверку типа чата (блокируем команды в группах)
+    bot.use(chatTypeCheck);
+
+    // Применяем проверку прав администратора
+    bot.use(adminCheck);
+
+    logger.success('Middleware initialized');
+}
 
 /**
  * Инициализация команд
@@ -102,6 +120,9 @@ function initializeCommands() {
     setupMyIdCommand(bot);
     setupAddAdminCommand(bot);
     setupRemoveAdminCommand(bot);
+    setupGroupIdCommand(bot);
+    setupAddGroupCommand(bot);
+    setupRemoveGroupCommand(bot);
     setupGroupsCommand(bot);
     setupAnnounceCommand(bot);
     setupTemplateCommands(bot);
@@ -184,6 +205,7 @@ async function startBot() {
         logger.info('Initializing bot...');
 
         // Инициализируем все компоненты
+        initializeMiddleware();
         initializeCommands();
         initializeGroupHandlers();
         initializeErrorHandling();

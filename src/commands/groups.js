@@ -21,11 +21,12 @@ export function setupGroupsCommand(bot) {
 
         if (groups.length === 0) {
             const backKeyboard = Markup.inlineKeyboard([
-                [Markup.button.callback('◀️ Назад', 'menu:announce')]
+                [Markup.button.callback('◀️ Назад', 'menu:group_management')]
             ]);
             return ctx.reply(
                 '📋 Список групп пуст.\n\n' +
-                'Добавьте бота в группу, и она автоматически появится в списке.',
+                'Добавьте бота в группу, и она автоматически появится в списке.\n' +
+                'Или добавьте группу вручную через меню управления группами.',
                 backKeyboard
             );
         }
@@ -43,14 +44,28 @@ export function setupGroupsCommand(bot) {
                 message += `   Теги: ${tagsStr}\n`;
             }
 
+            // Показываем способ добавления
+            if (group.addedManually) {
+                message += `   📝 Добавлена вручную\n`;
+            }
+
             message += `   Добавлена: ${addedDate}\n\n`;
         });
 
-        const backKeyboard = Markup.inlineKeyboard([
-            [Markup.button.callback('◀️ Назад', 'menu:announce')]
-        ]);
+        // Создаем кнопки для удаления каждой группы
+        const buttons = [];
+        groups.forEach((group) => {
+            buttons.push([
+                Markup.button.callback(`🗑️ Удалить "${group.title}"`, `delete_group:${group.id}`)
+            ]);
+        });
+
+        // Добавляем кнопку "Назад"
+        buttons.push([Markup.button.callback('◀️ Назад', 'menu:group_management')]);
+
+        const keyboard = Markup.inlineKeyboard(buttons);
 
         logger.info(`Admin ${userId} viewed groups list`);
-        ctx.reply(message, { parse_mode: 'HTML', ...backKeyboard });
+        ctx.reply(message, { parse_mode: 'HTML', ...keyboard });
     });
 }

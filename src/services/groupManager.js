@@ -87,6 +87,32 @@ class GroupManager {
     }
 
     /**
+     * Добавляет группу вручную (по ID и названию)
+     */
+    addGroupManually(chatId, chatTitle) {
+        const groups = this.getGroups();
+
+        // Проверяем, не добавлена ли уже эта группа
+        const exists = groups.find(g => g.id === chatId);
+        if (exists) {
+            logger.warn(`Group ${chatTitle} (${chatId}) already exists`);
+            return false;
+        }
+
+        groups.push({
+            id: chatId,
+            title: chatTitle,
+            tags: [],
+            addedAt: new Date().toISOString(),
+            addedManually: true // Флаг для отслеживания ручного добавления
+        });
+
+        this.saveGroups(groups);
+        logger.success(`Manually added group: ${chatTitle} (${chatId})`);
+        return true;
+    }
+
+    /**
      * Удаляет группу
      */
     removeGroup(chatId) {

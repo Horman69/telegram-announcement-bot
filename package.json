@@ -6,7 +6,12 @@
     "type": "module",
     "scripts": {
         "start": "node src/bot.js",
-        "dev": "node --watch src/bot.js"
+        "dev": "node --watch src/bot.js",
+        "deploy": "pm2 start ecosystem.config.js --env production",
+        "logs": "pm2 logs announcement-bot",
+        "restart": "pm2 restart announcement-bot",
+        "stop": "pm2 stop announcement-bot",
+        "status": "pm2 status"
     },
     "keywords": [
         "telegram",

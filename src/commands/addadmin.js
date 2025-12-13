@@ -78,13 +78,13 @@ export function setupAddAdminCommand(bot) {
     // Команда /cancel - отмена процесса
     bot.command('cancel', async (ctx) => {
         const userId = ctx.from?.id;
+        const userState = conversationState.getState(userId);
 
-        if (conversationState.hasState(userId)) {
+        // Проверяем, что это именно процесс добавления админа
+        if (userState && userState.action === 'add_admin') {
             conversationState.clearState(userId);
             logger.info(`User ${userId} cancelled admin addition process`);
             await ctx.reply('❌ Процесс добавления администратора отменён');
-        } else {
-            await ctx.reply('ℹ️ Нет активного процесса для отмены');
         }
     });
 

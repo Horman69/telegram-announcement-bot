@@ -88,6 +88,7 @@ class MenuBuilder {
                 [Markup.button.callback('📢 Рассылка', 'menu:announce')],
                 [Markup.button.callback('📋 Шаблоны', 'menu:templates')],
                 [Markup.button.callback('🏷️ Теги', 'menu:tags')],
+                [Markup.button.callback('📊 Управление группами', 'menu:group_management')],
                 [Markup.button.callback('👥 Администраторы', 'menu:admins')],
                 [Markup.button.callback('◀️ Назад', 'menu:main')]
             ];
@@ -233,6 +234,38 @@ class MenuBuilder {
      */
     getAdminManagementMenuText() {
         return `👥 Управление администраторами
+
+📌 Выберите действие:`;
+    }
+
+    /**
+     * Создает меню управления группами
+     * @returns {Object} Inline клавиатура
+     */
+    getGroupManagementMenu() {
+        try {
+            const buttons = [
+                [Markup.button.callback('📋 Список групп', 'menu:action:group_list')],
+                [Markup.button.callback('➕ Добавить группу', 'menu:action:group_add')],
+                [Markup.button.callback('🗑️ Удалить группу', 'menu:action:group_remove')],
+                [Markup.button.callback('🆔 ID группы', 'menu:action:group_id')],
+                [Markup.button.callback('◀️ Назад', 'menu:admin')]
+            ];
+
+            logger.info('Group management menu created');
+            return Markup.inlineKeyboard(buttons);
+        } catch (error) {
+            logger.error('Error creating group management menu:', error);
+            return Markup.inlineKeyboard([]);
+        }
+    }
+
+    /**
+     * Создает текст для меню управления группами
+     * @returns {string} Текст сообщения
+     */
+    getGroupManagementMenuText() {
+        return `📊 Управление группами
 
 📌 Выберите действие:`;
     }
