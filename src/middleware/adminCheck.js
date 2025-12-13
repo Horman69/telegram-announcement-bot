@@ -20,7 +20,16 @@ export async function adminCheck(ctx, next) {
         return ctx.reply('❌ Ошибка: не удалось определить пользователя');
     }
 
-    // Проверяем права администратора
+    // Проверяем, является ли это командой
+    const messageText = ctx.message?.text || ctx.callbackQuery?.data || '';
+    const isCommand = messageText.startsWith('/') || ctx.updateType === 'callback_query';
+
+    // Если это не команда и не callback - пропускаем проверку прав
+    if (!isCommand) {
+        return next();
+    }
+
+    // Проверяем права администратора только для команд
     if (!isAdmin(userId)) {
         logger.warn(
             `Access denied for non-admin user: ${userName} (${userId})`
