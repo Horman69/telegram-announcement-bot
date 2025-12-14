@@ -207,13 +207,13 @@ export function setupAnnounceMediaSelectiveCommand(bot) {
     });
 
     // Обработчик текста (для подписи к медиа)
-    bot.on('text', async (ctx) => {
+    bot.on('text', async (ctx, next) => {
         const userId = ctx.from.id;
         const state = conversationState.getState(userId);
 
         // Проверяем, что это не команда
         if (ctx.message.text.startsWith('/')) {
-            return;
+            return next(); // Передаем команды дальше!
         }
 
         if (!state || state.action !== 'announce_media_selective' || state.step !== 'waiting_for_caption') {
