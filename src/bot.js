@@ -117,6 +117,7 @@ function initializeCommands() {
     });
 
     // Регистрируем команды
+    setupMediaTagsCommand(bot);  // FIRST! Before any text handlers
     setupMenuCommand(bot);
     setupMyIdCommand(bot);
     setupAddAdminCommand(bot);
@@ -129,7 +130,6 @@ function initializeCommands() {
     setupTagCommands(bot);
     setupSelectiveAnnounceCommands(bot);
     setupAnnounceMediaCommand(bot);
-    setupMediaTagsCommand(bot);  // New simple media tags command
     setupRemoveGroupCommand(bot);  // Moved after media commands to prevent text handler interception
 
     logger.success('All commands registered');
