@@ -16,6 +16,7 @@ import { setupRemoveAdminCommand } from './commands/removeadmin.js';
 import { setupGroupIdCommand } from './commands/groupid.js';
 import { setupAddGroupCommand } from './commands/addgroup.js';
 import { setupRemoveGroupCommand } from './commands/removegroup.js';
+import { setupSetTopicCommand } from './commands/settopic.js';
 import menuBuilder from './services/menuBuilder.js';
 import { isAdmin } from './config/admins.js';
 import chatTypeCheck from './middleware/chatTypeCheck.js';
@@ -124,6 +125,7 @@ function initializeCommands() {
     setupRemoveAdminCommand(bot);
     setupGroupIdCommand(bot);
     setupAddGroupCommand(bot);
+    setupSetTopicCommand(bot);  // Set topic for forum groups
     setupGroupsCommand(bot);
     setupAnnounceCommand(bot);
     setupTemplateCommands(bot);

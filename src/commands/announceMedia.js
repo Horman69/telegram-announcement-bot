@@ -281,22 +281,26 @@ export function setupAnnounceMediaCommand(bot) {
                 if (mediaType === 'photo') {
                     await ctx.telegram.sendPhoto(group.id, fileId, {
                         caption: fullCaption,
-                        parse_mode: 'HTML'
+                        parse_mode: 'HTML',
+                        message_thread_id: group.threadId || undefined
                     });
                 } else if (mediaType === 'video') {
                     await ctx.telegram.sendVideo(group.id, fileId, {
                         caption: fullCaption,
-                        parse_mode: 'HTML'
+                        parse_mode: 'HTML',
+                        message_thread_id: group.threadId || undefined
                     });
                 } else if (mediaType === 'document') {
                     await ctx.telegram.sendDocument(group.id, fileId, {
                         caption: fullCaption,
-                        parse_mode: 'HTML'
+                        parse_mode: 'HTML',
+                        message_thread_id: group.threadId || undefined
                     });
                 } else if (mediaType === 'audio') {
                     await ctx.telegram.sendAudio(group.id, fileId, {
                         caption: fullCaption,
-                        parse_mode: 'HTML'
+                        parse_mode: 'HTML',
+                        message_thread_id: group.threadId || undefined
                     });
                 }
 

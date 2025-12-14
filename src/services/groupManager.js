@@ -78,6 +78,7 @@ class GroupManager {
             id: chatId,
             title: chatTitle,
             tags: [],
+            threadId: null,  // ID темы для форумов (null = General)
             addedAt: new Date().toISOString()
         });
 
@@ -240,6 +241,37 @@ class GroupManager {
     getGroupById(groupId) {
         const groups = this.getGroups();
         return groups.find(g => g.id === groupId) || null;
+    }
+
+    /**
+     * Устанавливает ID темы для группы
+     * @param {number} groupId - ID группы
+     * @param {number|null} threadId - ID темы (null для General)
+     * @returns {boolean} Успешность операции
+     */
+    setThreadId(groupId, threadId) {
+        const groups = this.getGroups();
+        const group = groups.find(g => g.id === groupId);
+
+        if (!group) {
+            logger.warn(`Group ${groupId} not found`);
+            return false;
+        }
+
+        group.threadId = threadId;
+        this.saveGroups(groups);
+        logger.success(`Set threadId ${threadId} for group ${group.title} (${groupId})`);
+        return true;
+    }
+
+    /**
+     * Получает ID темы для группы
+     * @param {number} groupId - ID группы
+     * @returns {number|null} ID темы или null
+     */
+    getThreadId(groupId) {
+        const group = this.getGroupById(groupId);
+        return group ? group.threadId : null;
     }
 }
 

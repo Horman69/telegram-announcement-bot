@@ -32,6 +32,10 @@ export function setupGroupsCommand(bot) {
         }
 
         let message = `📋 Зарегистрированные группы (${groups.length}):\n\n`;
+        message += `💡 <b>Подсказка:</b> Для отправки в конкретную тему форума:\n`;
+        message += `   1. Откройте нужную тему в группе\n`;
+        message += `   2. Отправьте команду /settopic\n\n`;
+        message += `━━━━━━━━━━━━━━━━━━━━\n\n`;
 
         groups.forEach((group, index) => {
             const addedDate = new Date(group.addedAt).toLocaleDateString('ru-RU');
@@ -44,6 +48,13 @@ export function setupGroupsCommand(bot) {
                 message += `   Теги: ${tagsStr}\n`;
             }
 
+            // Показываем тему форума, если установлена
+            if (group.threadId) {
+                message += `   📍 Тема: ID ${group.threadId}\n`;
+            } else {
+                message += `   📍 Тема: General (по умолчанию)\n`;
+            }
+
             // Показываем способ добавления
             if (group.addedManually) {
                 message += `   📝 Добавлена вручную\n`;
@@ -52,12 +63,21 @@ export function setupGroupsCommand(bot) {
             message += `   Добавлена: ${addedDate}\n\n`;
         });
 
-        // Создаем кнопки для удаления каждой группы
+        // Создаем кнопки для каждой группы
         const buttons = [];
         groups.forEach((group) => {
-            buttons.push([
+            const groupButtons = [
                 Markup.button.callback(`🗑️ Удалить "${group.title}"`, `delete_group:${group.id}`)
-            ]);
+            ];
+
+            // Добавляем кнопку сброса темы, если тема установлена
+            if (group.threadId) {
+                groupButtons.push(
+                    Markup.button.callback(`🔄 Сбросить тему`, `reset_topic:${group.id}`)
+                );
+            }
+
+            buttons.push(groupButtons);
         });
 
         // Добавляем кнопку "Назад"
@@ -67,5 +87,76 @@ export function setupGroupsCommand(bot) {
 
         logger.info(`Admin ${userId} viewed groups list`);
         ctx.reply(message, { parse_mode: 'HTML', ...keyboard });
+    });
+
+    // Обработчик кнопки "Сбросить тему"
+    bot.action(/reset_topic:(.+)/, async (ctx) => {
+        const userId = ctx.from.id;
+
+        if (!isAdmin(userId)) {
+            return ctx.answerCbQuery('❌ У вас нет прав администратора', { show_alert: true });
+        }
+
+        const groupId = parseInt(ctx.match[1]);
+        const group = groupManager.getGroupById(groupId);
+
+        if (!group) {
+            await ctx.answerCbQuery('❌ Группа не найдена', { show_alert: true });
+            return;
+        }
+
+        // Сбрасываем тему
+        groupManager.setThreadId(groupId, null);
+
+        await ctx.answerCbQuery('✅ Тема сброшена! Рассылка будет идти в General');
+
+        // Обновляем сообщение со списком групп
+        const groups = groupManager.getGroups();
+        let message = `📋 Зарегистрированные группы (${groups.length}):\n\n`;
+
+        groups.forEach((group, index) => {
+            const addedDate = new Date(group.addedAt).toLocaleDateString('ru-RU');
+            message += `${index + 1}. ${group.title}\n`;
+            message += `   ID: <code>${group.id}</code>\n`;
+
+            if (group.tags && group.tags.length > 0) {
+                const tagsStr = group.tags.map(tag => `#${tag}`).join(', ');
+                message += `   Теги: ${tagsStr}\n`;
+            }
+
+            if (group.threadId) {
+                message += `   📍 Тема: ID ${group.threadId}\n`;
+            } else {
+                message += `   📍 Тема: General (по умолчанию)\n`;
+            }
+
+            if (group.addedManually) {
+                message += `   📝 Добавлена вручную\n`;
+            }
+
+            message += `   Добавлена: ${addedDate}\n\n`;
+        });
+
+        const buttons = [];
+        groups.forEach((group) => {
+            const groupButtons = [
+                Markup.button.callback(`🗑️ Удалить "${group.title}"`, `delete_group:${group.id}`)
+            ];
+
+            if (group.threadId) {
+                groupButtons.push(
+                    Markup.button.callback(`🔄 Сбросить тему`, `reset_topic:${group.id}`)
+                );
+            }
+
+            buttons.push(groupButtons);
+        });
+
+        buttons.push([Markup.button.callback('◀️ Назад', 'menu:group_management')]);
+
+        const keyboard = Markup.inlineKeyboard(buttons);
+
+        await ctx.editMessageText(message, { parse_mode: 'HTML', ...keyboard });
+        logger.info(`Admin ${userId} reset topic for group ${groupId}`);
     });
 }

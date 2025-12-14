@@ -177,7 +177,8 @@ export function setupMediaTagsCommand(bot) {
 
                 await ctx.telegram[sendMethod](group.id, state.mediaId, {
                     caption: state.caption,
-                    parse_mode: 'HTML'
+                    parse_mode: 'HTML',
+                    message_thread_id: group.threadId || undefined  // Отправка в тему форума
                 });
 
                 successCount++;

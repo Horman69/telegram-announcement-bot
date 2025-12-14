@@ -108,7 +108,10 @@ export function setupAnnounceCommand(bot) {
                 await ctx.telegram.sendMessage(
                     group.id,
                     `📢 <b>Объявление</b>\n\n${escapedText}`,
-                    { parse_mode: 'HTML' }
+                    {
+                        parse_mode: 'HTML',
+                        message_thread_id: group.threadId || undefined  // Отправка в тему форума
+                    }
                 );
                 successCount++;
                 logger.success(`Announcement sent to group ${group.title} (${group.id})`);
