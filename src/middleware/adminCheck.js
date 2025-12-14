@@ -29,6 +29,11 @@ export async function adminCheck(ctx, next) {
         return next();
     }
 
+    // Логируем команду для отладки
+    if (messageText.startsWith('/')) {
+        logger.info(`[ADMIN_CHECK] Processing command: ${messageText} from user ${userId}`);
+    }
+
     // Проверяем права администратора только для команд
     if (!isAdmin(userId)) {
         logger.warn(
