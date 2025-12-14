@@ -9,7 +9,7 @@ import { setupTemplateCommands } from './commands/template.js';
 import { setupTagCommands } from './commands/tags.js';
 import { setupSelectiveAnnounceCommands } from './commands/announceSelective.js';
 import { setupAnnounceMediaCommand } from './commands/announceMedia.js';
-import { setupAnnounceMediaSelectiveCommand } from './commands/announceMediaSelective.js';
+import { setupMediaTagsCommand } from './commands/mediaTags.js';
 import { setupMenuCommand } from './commands/menu.js';
 import { setupAddAdminCommand } from './commands/addadmin.js';
 import { setupRemoveAdminCommand } from './commands/removeadmin.js';
@@ -129,7 +129,7 @@ function initializeCommands() {
     setupTagCommands(bot);
     setupSelectiveAnnounceCommands(bot);
     setupAnnounceMediaCommand(bot);
-    setupAnnounceMediaSelectiveCommand(bot);
+    setupMediaTagsCommand(bot);  // New simple media tags command
     setupRemoveGroupCommand(bot);  // Moved after media commands to prevent text handler interception
 
     logger.success('All commands registered');
