@@ -38,6 +38,14 @@ export function setupSetTopicCommand(bot) {
         // Получаем ID темы из текущего сообщения
         const threadId = ctx.message.message_thread_id || null;
 
+        logger.info(`[SETTOPIC] Chat type: ${chatType}, is_forum: ${ctx.chat.is_forum}, threadId: ${threadId}`);
+        logger.info(`[SETTOPIC] Full message data: ${JSON.stringify({
+            message_id: ctx.message.message_id,
+            message_thread_id: ctx.message.message_thread_id,
+            chat_type: ctx.chat.type,
+            is_forum: ctx.chat.is_forum
+        })}`);
+
         // Сохраняем threadId
         const success = groupManager.setThreadId(chatId, threadId);
 
