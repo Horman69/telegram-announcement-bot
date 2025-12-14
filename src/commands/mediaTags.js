@@ -14,12 +14,15 @@ export function setupMediaTagsCommand(bot) {
 
     // Команда /mediatags <теги>
     bot.command('mediatags', async (ctx) => {
+        logger.info(`[MEDIATAGS] ===== HANDLER CALLED =====`);
+
         const userId = ctx.from.id;
 
         logger.info(`[MEDIATAGS] Command received from user ${userId}`);
 
         // Проверка прав
         if (!isAdmin(userId)) {
+            logger.warn(`[MEDIATAGS] User ${userId} is not admin`);
             return ctx.reply('❌ У вас нет прав для использования этой команды.');
         }
 
