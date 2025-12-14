@@ -13,6 +13,8 @@ export function setupAnnounceMediaSelectiveCommand(bot) {
     bot.command('announce_media_to', (ctx) => {
         const userId = ctx.from.id;
 
+        logger.info(`[ANNOUNCE_MEDIA_TO] Command received from user ${userId}`);
+
         // Проверка прав администратора
         if (!isAdmin(userId)) {
             logger.warn(`User ${userId} tried to use /announce_media_to without admin rights`);
