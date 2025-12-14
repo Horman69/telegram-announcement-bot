@@ -9,22 +9,25 @@ import logger from '../services/logger.js';
  */
 export function setupAnnounceMediaSelectiveCommand(bot) {
 
-    logger.info('[SETUP] Registering announce_media_to command...');
+    logger.info('[SETUP] Registering announcemediato command...');
 
-    // Команда /announce_media_to - рассылка медиа по тегам
-    bot.command('announce_media_to', (ctx) => {
+    // Команда /announcemediato - рассылка медиа по тегам
+    bot.command('announcemediato', (ctx) => {
+        logger.info(`[ANNOUNCEMEDIATO] ===== COMMAND HANDLER CALLED =====`);
+        logger.info(`[ANNOUNCEMEDIATO] User: ${ctx.from?.id}, Text: ${ctx.message?.text}`);
+
         const userId = ctx.from.id;
 
-        logger.info(`[ANNOUNCE_MEDIA_TO] Command received from user ${userId}`);
+        logger.info(`[ANNOUNCEMEDIATO] Command received from user ${userId}`);
 
         // Проверка прав администратора
         if (!isAdmin(userId)) {
-            logger.warn(`User ${userId} tried to use /announce_media_to without admin rights`);
+            logger.warn(`User ${userId} tried to use /announcemediato without admin rights`);
             return ctx.reply('❌ У вас нет прав для использования этой команды.');
         }
 
         // Парсим теги из команды
-        const fullText = ctx.message.text.replace('/announce_media_to', '').trim();
+        const fullText = ctx.message.text.replace('/announcemediato', '').trim();
 
         if (!fullText) {
             const backKeyboard = Markup.inlineKeyboard([
@@ -49,7 +52,7 @@ export function setupAnnounceMediaSelectiveCommand(bot) {
             const backKeyboard = Markup.inlineKeyboard([
                 [Markup.button.callback('◀️ Назад', 'menu:announce')]
             ]);
-            return ctx.reply('❌ Не указаны теги. Формат: /announce_media_to <теги>', backKeyboard);
+            return ctx.reply('❌ Не указаны теги. Формат: /announcemediato <теги>', backKeyboard);
         }
 
         // Получаем группы по тегам
