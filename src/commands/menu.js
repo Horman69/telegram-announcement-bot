@@ -357,6 +357,29 @@ export function setupMenuCommand(bot) {
                     await ctx.answerCbQuery('Рассылка с медиа');
                     break;
 
+                case 'action:announce_media_tags':
+                    // Рассылка с медиа по тегам
+                    if (!userIsAdmin) {
+                        await ctx.answerCbQuery('❌ У вас нет прав администратора', { show_alert: true });
+                        return;
+                    }
+
+                    const announceMediaTagsText = `📎🏷️ Рассылка с медиа по тегам\n\n` +
+                        `Отправить объявление с медиа только в группы с определенными тегами:\n\n` +
+                        `1. Отправьте команду: /announce_media_to <теги>\n` +
+                        `2. Отправьте медиа-файл\n` +
+                        `3. Отправьте текст (подпись)\n` +
+                        `4. Подтвердите отправку\n\n` +
+                        `Пример:\n` +
+                        `/announce_media_to важное,новости\n` +
+                        `[прикрепить фото]\n` +
+                        `Текст объявления`;
+
+                    const announceMediaTagsKeyboard = menuBuilder.getAnnouncementMenu();
+                    await ctx.editMessageText(announceMediaTagsText, announceMediaTagsKeyboard);
+                    await ctx.answerCbQuery('Рассылка с медиа по тегам');
+                    break;
+
                 case 'action:groups':
                     // Список групп - показываем фактический список
                     if (!userIsAdmin) {

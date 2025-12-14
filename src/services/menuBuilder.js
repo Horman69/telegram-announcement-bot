@@ -121,7 +121,8 @@ class MenuBuilder {
                 [Markup.button.callback('📣 Во все группы', 'menu:action:announce_all')],
                 [Markup.button.callback('🏷️ По тегам', 'menu:action:announce_tags')],
                 [Markup.button.callback('🎯 По ID групп', 'menu:action:announce_ids')],
-                [Markup.button.callback('📎 С медиа', 'menu:action:announce_media')],
+                [Markup.button.callback('📎 С медиа (все)', 'menu:action:announce_media')],
+                [Markup.button.callback('📎🏷️ С медиа по тегам', 'menu:action:announce_media_tags')],
                 [Markup.button.callback('📊 Список групп', 'menu:action:groups')],
                 [Markup.button.callback('◀️ Назад', 'menu:admin')]
             ];
