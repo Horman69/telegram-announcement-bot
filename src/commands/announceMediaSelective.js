@@ -9,6 +9,8 @@ import logger from '../services/logger.js';
  */
 export function setupAnnounceMediaSelectiveCommand(bot) {
 
+    logger.info('[SETUP] Registering announce_media_to command...');
+
     // Команда /announce_media_to - рассылка медиа по тегам
     bot.command('announce_media_to', (ctx) => {
         const userId = ctx.from.id;
