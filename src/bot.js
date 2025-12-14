@@ -9,6 +9,7 @@ import { setupTemplateCommands } from './commands/template.js';
 import { setupTagCommands } from './commands/tags.js';
 import { setupSelectiveAnnounceCommands } from './commands/announceSelective.js';
 import { setupAnnounceMediaCommand } from './commands/announceMedia.js';
+import { setupAnnounceMediaSelectiveCommand } from './commands/announceMediaSelective.js';
 import { setupMenuCommand } from './commands/menu.js';
 import { setupAddAdminCommand } from './commands/addadmin.js';
 import { setupRemoveAdminCommand } from './commands/removeadmin.js';
@@ -129,6 +130,7 @@ function initializeCommands() {
     setupTagCommands(bot);
     setupSelectiveAnnounceCommands(bot);
     setupAnnounceMediaCommand(bot);
+    setupAnnounceMediaSelectiveCommand(bot);
 
     logger.success('All commands registered');
 }
