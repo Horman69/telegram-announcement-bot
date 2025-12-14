@@ -30,9 +30,9 @@ export async function chatTypeCheck(ctx, next) {
 
             // Проверяем, является ли это командой (начинается с /)
             if (messageText.startsWith('/')) {
-                // Разрешаем команды /myid и /groupid в группах
-                // Эти команды помогают узнать ID для настройки бота
-                const allowedCommands = ['/myid', '/groupid'];
+                // Разрешаем команды /myid, /groupid и /settopic в группах
+                // Эти команды помогают узнать ID и настроить темы для рассылки
+                const allowedCommands = ['/myid', '/groupid', '/settopic'];
                 const isAllowedCommand = allowedCommands.some(cmd => messageText.startsWith(cmd));
 
                 if (isAllowedCommand) {
