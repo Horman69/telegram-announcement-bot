@@ -123,7 +123,6 @@ function initializeCommands() {
     setupRemoveAdminCommand(bot);
     setupGroupIdCommand(bot);
     setupAddGroupCommand(bot);
-    setupRemoveGroupCommand(bot);
     setupGroupsCommand(bot);
     setupAnnounceCommand(bot);
     setupTemplateCommands(bot);
@@ -131,6 +130,7 @@ function initializeCommands() {
     setupSelectiveAnnounceCommands(bot);
     setupAnnounceMediaCommand(bot);
     setupAnnounceMediaSelectiveCommand(bot);
+    setupRemoveGroupCommand(bot);  // Moved after media commands to prevent text handler interception
 
     logger.success('All commands registered');
 }
