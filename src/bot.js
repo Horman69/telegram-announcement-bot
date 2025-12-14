@@ -184,24 +184,6 @@ function initializeGroupHandlers() {
 }
 
 /**
- * Игнорирование необработанных текстовых сообщений
- * Этот обработчик должен быть последним, чтобы игнорировать все сообщения,
- * которые не были обработаны командами или другими обработчиками
- */
-function initializeTextIgnore() {
-    // Этот обработчик срабатывает последним и игнорирует все необработанные текстовые сообщения
-    bot.on('text', (ctx, next) => {
-        // ВАЖНО: Пропускаем команды! Команды должны обрабатываться bot.command()
-        if (ctx.message.text.startsWith('/')) {
-            return next(); // Передаем команды дальше
-        }
-
-        // Игнорируем только обычные текстовые сообщения (не команды)
-        // Это предотвращает ответы бота на обычные сообщения в группах
-    });
-}
-
-/**
  * Глобальная обработка ошибок
  */
 function initializeErrorHandling() {
@@ -228,7 +210,7 @@ async function startBot() {
         initializeMiddleware();
         initializeCommands();
         initializeGroupHandlers();
-        initializeTextIgnore(); // Добавляем обработчик игнорирования текста в конце
+        // Removed initializeTextIgnore() - it was blocking all commands
         initializeErrorHandling();
 
         // Запускаем бота
