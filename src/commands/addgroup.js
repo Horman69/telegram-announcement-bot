@@ -72,6 +72,21 @@ export function setupAddGroupCommand(bot) {
                 );
             }
 
+            // Проверяем, что ID начинается с -100 (стандартный формат Telegram для групп)
+            const groupIdStr = groupId.toString();
+            if (!groupIdStr.startsWith('-100')) {
+                return ctx.reply(
+                    '⚠️ Неверный формат ID группы!\n\n' +
+                    'ID группы в Telegram всегда начинается с <code>-100</code>\n\n' +
+                    'Примеры правильных ID:\n' +
+                    '• <code>-1001234567890</code>\n' +
+                    '• <code>-1009876543210</code>\n\n' +
+                    `Вы ввели: <code>${groupId}</code>\n\n` +
+                    'Проверьте ID и попробуйте ещё раз или отправьте /cancel для отмены.',
+                    { parse_mode: 'HTML' }
+                );
+            }
+
             // Проверяем, не добавлена ли уже эта группа
             const existingGroup = groupManager.getGroupById(groupId);
             if (existingGroup) {
