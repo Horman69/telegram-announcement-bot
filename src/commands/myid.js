@@ -22,7 +22,7 @@ export function setupMyIdCommand(bot) {
             `ID: <code>${userId}</code>\n` +
             `Имя: ${firstName}\n` +
             `Username: ${username}\n\n` +
-            `Скопируйте ID и добавьте его в файл <code>src/config/admins.js</code> для получения прав администратора.`,
+            `Отправьте этот ID администратору для получения прав доступа.`,
             { parse_mode: 'HTML', ...backKeyboard }
         );
     });
