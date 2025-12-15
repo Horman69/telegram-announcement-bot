@@ -17,6 +17,10 @@ import { setupGroupIdCommand } from './commands/groupid.js';
 import { setupAddGroupCommand } from './commands/addgroup.js';
 import { setupRemoveGroupCommand } from './commands/removegroup.js';
 import { setupSetTopicCommand } from './commands/settopic.js';
+import { setupRegisterCommand } from './commands/register.js';
+import { setupApproveUserCommands } from './commands/approveUser.js';
+import { setupAnnounceUsersCommands } from './commands/announceUsers.js';
+import { setupUsersCommand } from './commands/users.js';
 import menuBuilder from './services/menuBuilder.js';
 import { isAdmin } from './config/admins.js';
 import chatTypeCheck from './middleware/chatTypeCheck.js';
@@ -126,6 +130,10 @@ function initializeCommands() {
     setupGroupIdCommand(bot);
     setupAddGroupCommand(bot);
     setupSetTopicCommand(bot);  // Set topic for forum groups
+    setupRegisterCommand(bot);  // User registration
+    setupApproveUserCommands(bot);  // Approve/reject users
+    setupAnnounceUsersCommands(bot);  // Broadcast to users
+    setupUsersCommand(bot);  // Manage users
     setupGroupsCommand(bot);
     setupAnnounceCommand(bot);
     setupTemplateCommands(bot);

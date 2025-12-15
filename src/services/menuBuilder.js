@@ -89,6 +89,7 @@ class MenuBuilder {
                 [Markup.button.callback('📋 Шаблоны', 'menu:templates')],
                 [Markup.button.callback('🏷️ Теги', 'menu:tags')],
                 [Markup.button.callback('📊 Управление группами', 'menu:group_management')],
+                [Markup.button.callback('👤 Пользователи', 'menu:user_management')],
                 [Markup.button.callback('👥 Администраторы', 'menu:admins')],
                 [Markup.button.callback('◀️ Назад', 'menu:main')]
             ];
@@ -270,6 +271,28 @@ class MenuBuilder {
         return `📊 Управление группами
 
 📌 Выберите действие:`;
+    }
+
+    /**
+     * Создает меню управления пользователями
+     * @returns {Object} Inline клавиатура
+     */
+    getUserManagementMenu() {
+        try {
+            const buttons = [
+                [Markup.button.callback('📋 Список пользователей', 'menu:action:users_list')],
+                [Markup.button.callback('⏳ Ожидают одобрения', 'menu:action:users_pending')],
+                [Markup.button.callback('📤 Рассылка всем', 'menu:action:announce_all_users')],
+                [Markup.button.callback('📚 Рассылка по предмету', 'menu:action:announce_by_subject')],
+                [Markup.button.callback('◀️ Назад', 'menu:admin')]
+            ];
+
+            logger.info('User management menu created');
+            return Markup.inlineKeyboard(buttons);
+        } catch (error) {
+            logger.error('Error creating user management menu:', error);
+            return Markup.inlineKeyboard([]);
+        }
     }
 }
 

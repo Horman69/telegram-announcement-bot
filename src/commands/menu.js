@@ -148,6 +148,21 @@ export function setupMenuCommand(bot) {
                     await ctx.answerCbQuery('Администраторы');
                     break;
 
+                case 'user_management':
+                    // Проверяем права администратора
+                    if (!userIsAdmin) {
+                        await ctx.answerCbQuery('❌ У вас нет прав администратора', { show_alert: true });
+                        return;
+                    }
+
+                    // Открываем меню управления пользователями
+                    const userMgmtText = '👤 Управление пользователями\n\n📌 Выберите действие:';
+                    const userMgmtKeyboard = menuBuilder.getUserManagementMenu();
+
+                    await ctx.editMessageText(userMgmtText, userMgmtKeyboard);
+                    await ctx.answerCbQuery('Пользователи');
+                    break;
+
                 case 'group_management':
                     // Проверяем права администратора
                     if (!userIsAdmin) {
