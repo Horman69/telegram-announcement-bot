@@ -380,52 +380,6 @@ export function setupMenuCommand(bot) {
                     await ctx.answerCbQuery('Рассылка с медиа по тегам');
                     break;
 
-                case 'action:groups':
-                    // Список групп - показываем фактический список
-                    if (!userIsAdmin) {
-                        await ctx.answerCbQuery('❌ У вас нет прав администратора', { show_alert: true });
-                        return;
-                    }
-
-                    const groupManagerForList = (await import('../services/groupManager.js')).default;
-                    const groupsForList = groupManagerForList.getGroups();
-
-                    if (groupsForList.length === 0) {
-                        const emptyGroupsListKeyboard = menuBuilder.getAnnouncementMenu();
-                        await ctx.editMessageText(
-                            '📋 Список групп пуст.\n\n' +
-                            'Добавьте бота в группу, и она автоматически появится в списке.\n' +
-                            'Или добавьте группу вручную через меню управления группами.',
-                            emptyGroupsListKeyboard
-                        );
-                        await ctx.answerCbQuery('Список групп пуст');
-                        return;
-                    }
-
-                    let groupsListMessage = `📋 Зарегистрированные группы (${groupsForList.length}):\n\n`;
-
-                    groupsForList.forEach((group, index) => {
-                        const addedDate = new Date(group.addedAt).toLocaleDateString('ru-RU');
-                        groupsListMessage += `${index + 1}. ${group.title}\n`;
-                        groupsListMessage += `   ID: <code>${group.id}</code>\n`;
-
-                        if (group.tags && group.tags.length > 0) {
-                            const tagsStr = group.tags.map(tag => `#${tag}`).join(', ');
-                            groupsListMessage += `   Теги: ${tagsStr}\n`;
-                        }
-
-                        if (group.addedManually) {
-                            groupsListMessage += `   📝 Добавлена вручную\n`;
-                        }
-
-                        groupsListMessage += `   Добавлена: ${addedDate}\n\n`;
-                    });
-
-                    const groupsAnnouncementKeyboard = menuBuilder.getAnnouncementMenu();
-                    await ctx.editMessageText(groupsListMessage, { parse_mode: 'HTML', ...groupsAnnouncementKeyboard });
-                    await ctx.answerCbQuery('Список групп');
-                    break;
-
                 // === ДЕЙСТВИЯ ШАБЛОНОВ ===
 
                 case 'action:template_save':
