@@ -36,14 +36,28 @@ export function setupSetTopicCommand(bot) {
         }
 
         // Получаем ID темы из текущего сообщения
-        const threadId = ctx.message.message_thread_id || null;
+        // В форумах message_thread_id может быть в разных местах
+        let threadId = ctx.message.message_thread_id;
+
+        // Если не нашли, проверяем в reply_to_message (для форумов)
+        if (!threadId && ctx.message.reply_to_message) {
+            threadId = ctx.message.reply_to_message.message_thread_id;
+        }
+
+        // Если не нашли, проверяем is_topic_message
+        if (!threadId && ctx.message.is_topic_message) {
+            // Для топиков ID темы = ID первого сообщения в топике
+            threadId = ctx.message.message_id;
+        }
+
+        threadId = threadId || null;
 
         logger.info(`[SETTOPIC] Chat type: ${chatType}, is_forum: ${ctx.chat.is_forum}, threadId: ${threadId}`);
-        logger.info(`[SETTOPIC] Full message data: ${JSON.stringify({
+        logger.info(`[SETTOPIC] Message details: ${JSON.stringify({
             message_id: ctx.message.message_id,
             message_thread_id: ctx.message.message_thread_id,
-            chat_type: ctx.chat.type,
-            is_forum: ctx.chat.is_forum
+            is_topic_message: ctx.message.is_topic_message,
+            reply_to_message_thread_id: ctx.message.reply_to_message?.message_thread_id
         })}`);
 
         // Сохраняем threadId
