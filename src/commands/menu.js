@@ -745,7 +745,8 @@ export function setupMenuCommand(bot) {
                     let groupsMessage = `📋 Зарегистрированные группы (${allGroups.length}):\n\n`;
                     groupsMessage += `💡 <b>Подсказка:</b> Для отправки в конкретную тему форума:\n`;
                     groupsMessage += `   1. Откройте нужную тему в группе\n`;
-                    groupsMessage += `   2. Отправьте команду /settopic\n\n`;
+                    groupsMessage += `   2. Отправьте: <code>/settopic ID_темы</code>\n`;
+                    groupsMessage += `   3. Для сброса: <code>/settopic reset</code>\n\n`;
                     groupsMessage += `━━━━━━━━━━━━━━━━━━━━\n\n`;
 
                     allGroups.forEach((group, index) => {
@@ -894,6 +895,38 @@ export function setupMenuCommand(bot) {
                     logger.info(`Showing group ID instruction to user ${userId}`);
                     await ctx.editMessageText(groupIdText, groupIdKeyboard);
                     await ctx.answerCbQuery('Инструкция по ID группы');
+                    break;
+
+                case 'forum_help':
+                    // Информация о работе с форумами
+                    if (!userIsAdmin) {
+                        await ctx.answerCbQuery('❌ У вас нет прав администратора', { show_alert: true });
+                        return;
+                    }
+
+                    const forumHelpText = `💬 Что это?\n\n` +
+                        `Если ваша группа - форум, вы можете отправлять рассылки в конкретные темы.\n\n` +
+                        `📍 Как найти ID темы:\n` +
+                        `1. Откройте тему в Telegram Desktop/Web\n` +
+                        `2. ID темы - это число в URL после последнего /\n` +
+                        `   Пример URL: t.me/c/1838199188/1\n` +
+                        `   ID темы = 1\n\n` +
+                        `🔧 Как установить тему:\n` +
+                        `1. Зайдите в группу-форум\n` +
+                        `2. Отправьте: <code>/settopic 1</code>\n` +
+                        `3. Бот подтвердит установку\n\n` +
+                        `🔄 Как сбросить:\n` +
+                        `Отправьте: <code>/settopic reset</code>\n\n` +
+                        `📤 Как отправить рассылку:\n` +
+                        `Используйте обычные команды:\n` +
+                        `• <code>/announce_all</code> - во все группы\n` +
+                        `• <code>/announce_tags</code> - по тегам\n\n` +
+                        `Бот автоматически отправит в установленную тему!\n\n` +
+                        `💡 Группы с темой отмечены иконкой 💬`;
+
+                    const forumHelpKeyboard = menuBuilder.getAnnouncementMenu();
+                    await ctx.editMessageText(forumHelpText, { parse_mode: 'HTML', ...forumHelpKeyboard });
+                    await ctx.answerCbQuery('О форумах');
                     break;
 
                 default:
