@@ -270,9 +270,10 @@ export function setupSelectiveAnnounceCommands(bot) {
                     groupManager.setThreadId(group.id, null);
 
                     try {
+                        const retryEscapedText = escapeHtml(announcementText);
                         await ctx.telegram.sendMessage(
                             group.id,
-                            `📢 <b>Объявление</b>\n\n${escapedText}`,
+                            `📢 <b>Объявление</b>\n\n${retryEscapedText}`,
                             { parse_mode: 'HTML' }
                         );
                         successCount++;
@@ -369,9 +370,10 @@ export function setupSelectiveAnnounceCommands(bot) {
                     groupManager.setThreadId(group.id, null);
 
                     try {
+                        const retryEscapedText = escapeHtml(announcementText);
                         await ctx.telegram.sendMessage(
                             group.id,
-                            `📢 <b>Объявление</b>\n\n${escapedText}`,
+                            `📢 <b>Объявление</b>\n\n${retryEscapedText}`,
                             { parse_mode: 'HTML' }
                         );
                         successCount++;
