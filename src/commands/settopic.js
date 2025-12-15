@@ -35,40 +35,39 @@ export function setupSetTopicCommand(bot) {
             );
         }
 
-        // Получаем ID темы из ответа на сообщение
-        // Telegram Bot API не передаёт message_thread_id напрямую для форумов
-        // Используем трюк: пересылаем сообщение самому себе и получаем message_thread_id
+        // Получаем ID темы из текста команды или сбрасываем
+        // Формат: /settopic <ID> или /settopic reset
+        const args = ctx.message.text.split(' ').slice(1);
         let threadId = null;
 
-        if (ctx.message.reply_to_message) {
-            try {
-                // Пробуем получить message_thread_id из ответного сообщения
-                const replyMsg = ctx.message.reply_to_message;
-
-                // Проверяем разные источники threadId
-                threadId = replyMsg.message_thread_id ||
-                    ctx.message.message_thread_id ||
-                    replyMsg.message_id;  // Fallback: используем ID сообщения
-
-                logger.info(`[SETTOPIC] Reply message data: ${JSON.stringify({
-                    reply_message_id: replyMsg.message_id,
-                    reply_thread_id: replyMsg.message_thread_id,
-                    current_thread_id: ctx.message.message_thread_id,
-                    selected_thread_id: threadId
-                })}`);
-
-            } catch (error) {
-                logger.error(`[SETTOPIC] Error getting threadId:`, error);
-                return ctx.reply('❌ Ошибка при определении ID темы. Попробуйте ещё раз.');
+        if (args.length > 0) {
+            if (args[0].toLowerCase() === 'reset') {
+                // Сброс темы
+                threadId = null;
+            } else {
+                // Пробуем распарсить ID
+                const parsedId = parseInt(args[0]);
+                if (isNaN(parsedId)) {
+                    return ctx.reply(
+                        '❌ Неверный формат ID темы.\n\n' +
+                        'Используйте:\n' +
+                        '/settopic <ID> - установить тему\n' +
+                        '/settopic reset - сбросить тему\n\n' +
+                        'Пример: /settopic 123'
+                    );
+                }
+                threadId = parsedId;
             }
         } else if (ctx.chat.is_forum) {
-            // Если форум, но нет ответа - просим ответить на сообщение
+            // Если форум и нет аргументов - показываем инструкцию
             return ctx.reply(
-                '❌ Для установки темы в форуме:\n\n' +
-                '1. Откройте нужную тему\n' +
-                '2. Ответьте на ПЕРВОЕ сообщение в этой теме командой /settopic\n\n' +
-                '💡 Важно: отвечайте именно на первое сообщение темы!\n\n' +
-                'Или отправьте /settopic в главной теме (General) для сброса.'
+                '📍 Как установить тему для форума:\n\n' +
+                '1. Откройте нужную тему в Telegram\n' +
+                '2. Нажмите на название темы вверху\n' +
+                '3. Скопируйте ID темы из URL (число после /)\n' +
+                '4. Отправьте: /settopic <ID>\n\n' +
+                'Пример: /settopic 123\n\n' +
+                'Для сброса: /settopic reset'
             );
         }
 
