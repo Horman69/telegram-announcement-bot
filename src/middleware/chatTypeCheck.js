@@ -60,6 +60,15 @@ export async function chatTypeCheck(ctx, next) {
 
     // Если это личное сообщение - пропускаем дальше
     if (chatType === 'private') {
+        // Команды, разрешённые в личных сообщениях
+        const ALLOWED_PRIVATE_COMMANDS = [
+            '/start',
+            '/help',
+            '/menu',
+            '/myid',
+            '/cancel',
+            '/register'  // Регистрация пользователей
+        ];
         // Логируем команды в личных сообщениях для отладки
         if (ctx.message?.text?.startsWith('/')) {
             logger.info(`[CHAT_TYPE_CHECK] Private chat command: ${ctx.message.text} from user ${ctx.from?.id}`);
