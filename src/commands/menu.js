@@ -765,6 +765,85 @@ export function setupMenuCommand(bot) {
                     await ctx.answerCbQuery('Список групп');
                     break;
 
+                case 'action:groups':
+                    // Список групп из меню рассылок
+                    if (!userIsAdmin) {
+                        await ctx.answerCbQuery('❌ У вас нет прав администратора', { show_alert: true });
+                        return;
+                    }
+
+                    // Используем ту же логику, что и action:group_list
+                    const groupsManager = (await import('../services/groupManager.js')).default;
+                    const allGroups = groupsManager.getGroups();
+
+                    if (allGroups.length === 0) {
+                        const emptyKeyboard = menuBuilder.getAnnouncementMenu();
+                        await ctx.editMessageText(
+                            '📋 Список групп пуст.\n\n' +
+                            'Добавьте бота в группу, и она автоматически появится в списке.\n' +
+                            'Или добавьте группу вручную.',
+                            emptyKeyboard
+                        );
+                        await ctx.answerCbQuery('Список групп пуст');
+                        return;
+                    }
+
+                    let groupsMessage = `📋 Зарегистрированные группы (${allGroups.length}):\n\n`;
+                    groupsMessage += `💡 <b>Подсказка:</b> Для отправки в конкретную тему форума:\n`;
+                    groupsMessage += `   1. Откройте нужную тему в группе\n`;
+                    groupsMessage += `   2. Отправьте команду /settopic\n\n`;
+                    groupsMessage += `━━━━━━━━━━━━━━━━━━━━\n\n`;
+
+                    allGroups.forEach((group, index) => {
+                        const addedDate = new Date(group.addedAt).toLocaleDateString('ru-RU');
+
+                        // Добавляем иконку форума, если установлена тема
+                        const forumIcon = group.threadId ? ' 💬' : '';
+                        groupsMessage += `${index + 1}. ${group.title}${forumIcon}\n`;
+                        groupsMessage += `   ID: <code>${group.id}</code>\n`;
+
+                        if (group.tags && group.tags.length > 0) {
+                            const tagsStr = group.tags.map(tag => `#${tag}`).join(', ');
+                            groupsMessage += `   Теги: ${tagsStr}\n`;
+                        }
+
+                        // Показываем тему форума, если установлена
+                        if (group.threadId) {
+                            groupsMessage += `   📍 Тема форума: ID ${group.threadId}\n`;
+                        }
+
+                        if (group.addedManually) {
+                            groupsMessage += `   📝 Добавлена вручную\n`;
+                        }
+
+                        groupsMessage += `   Добавлена: ${addedDate}\n\n`;
+                    });
+
+                    // Создаем кнопки для каждой группы
+                    const groupsButtons = [];
+                    allGroups.forEach((group) => {
+                        const groupButtons = [
+                            Markup.button.callback(`🗑️ Удалить "${group.title}"`, `delete_group:${group.id}`)
+                        ];
+
+                        // Добавляем кнопку сброса темы, если тема установлена
+                        if (group.threadId) {
+                            groupButtons.push(
+                                Markup.button.callback(`🔄 Сбросить тему`, `reset_topic:${group.id}`)
+                            );
+                        }
+
+                        groupsButtons.push(groupButtons);
+                    });
+
+                    groupsButtons.push([Markup.button.callback('◀️ Назад', 'menu:announce')]);
+
+                    const groupsKeyboard = Markup.inlineKeyboard(groupsButtons);
+
+                    await ctx.editMessageText(groupsMessage, { parse_mode: 'HTML', ...groupsKeyboard });
+                    await ctx.answerCbQuery('Список групп');
+                    break;
+
                 case 'action:group_add':
                     // Добавить группу
                     if (!userIsAdmin) {

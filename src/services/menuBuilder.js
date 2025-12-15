@@ -123,7 +123,7 @@ class MenuBuilder {
                 [Markup.button.callback('🎯 По ID групп', 'menu:action:announce_ids')],
                 [Markup.button.callback('📎 С медиа (все)', 'menu:action:announce_media')],
                 [Markup.button.callback('📎🏷️ С медиа по тегам', 'menu:action:announce_media_tags')],
-                [Markup.button.callback('📊 Список групп', 'action:group_list')],
+                [Markup.button.callback('📊 Список групп', 'menu:action:groups')],
                 [Markup.button.callback('ℹ️ О форумах', 'forum_help')],
                 [Markup.button.callback('◀️ Назад', 'menu:admin')]
             ];
