@@ -275,9 +275,25 @@ export function setupMenuCommand(bot) {
                         return;
                     }
 
-                    const usersListText = `📋 Список пользователей\n\n` +
-                        `Для просмотра списка зарегистрированных пользователей используйте команду:\n\n` +
-                        `/users`;
+                    // Импортируем userManager
+                    const userManager = (await import('../services/userManager.js')).default;
+                    const allUsers = userManager.getUsers();
+
+                    if (allUsers.length === 0) {
+                        const noUsersText = '📋 Список пользователей пуст\n\n' +
+                            'Пользователи могут зарегистрироваться через команду /register';
+                        const noUsersKeyboard = menuBuilder.getUserManagementMenu();
+                        await ctx.editMessageText(noUsersText, noUsersKeyboard);
+                        await ctx.answerCbQuery('Нет пользователей');
+                        return;
+                    }
+
+                    let usersListText = `👥 Все пользователи (${allUsers.length}):\n\n`;
+                    allUsers.forEach((user, index) => {
+                        const statusIcon = user.status === 'approved' ? '✅' : user.status === 'pending' ? '⏳' : '❌';
+                        usersListText += `${index + 1}. ${statusIcon} ${user.lastName} ${user.firstName} ${user.patronymic}\n`;
+                        usersListText += `   📚 ${user.subject}\n\n`;
+                    });
 
                     const usersListKeyboard = menuBuilder.getUserManagementMenu();
                     await ctx.editMessageText(usersListText, usersListKeyboard);
@@ -291,13 +307,28 @@ export function setupMenuCommand(bot) {
                         return;
                     }
 
-                    const usersPendingText = `⏳ Ожидают одобрения\n\n` +
-                        `Для просмотра пользователей, ожидающих одобрения:\n\n` +
-                        `/users\n\n` +
-                        `Затем выберите фильтр "⏳ Ожидают"`;
+                    const userManagerPending = (await import('../services/userManager.js')).default;
+                    const pendingUsers = userManagerPending.getPendingUsers();
 
-                    const usersPendingKeyboard = menuBuilder.getUserManagementMenu();
-                    await ctx.editMessageText(usersPendingText, usersPendingKeyboard);
+                    if (pendingUsers.length === 0) {
+                        const noPendingText = '⏳ Нет пользователей, ожидающих одобрения\n\n' +
+                            'Все заявки обработаны!';
+                        const noPendingKeyboard = menuBuilder.getUserManagementMenu();
+                        await ctx.editMessageText(noPendingText, noPendingKeyboard);
+                        await ctx.answerCbQuery('Нет ожидающих');
+                        return;
+                    }
+
+                    let pendingText = `⏳ Ожидают одобрения (${pendingUsers.length}):\n\n`;
+                    pendingUsers.forEach((user, index) => {
+                        pendingText += `${index + 1}. ${user.lastName} ${user.firstName} ${user.patronymic}\n`;
+                        pendingText += `   📚 ${user.subject}\n`;
+                        pendingText += `   🆔 ${user.id}\n\n`;
+                    });
+                    pendingText += 'Используйте /users для одобрения/отклонения';
+
+                    const pendingKeyboard = menuBuilder.getUserManagementMenu();
+                    await ctx.editMessageText(pendingText, pendingKeyboard);
                     await ctx.answerCbQuery('Ожидают одобрения');
                     break;
 
@@ -308,11 +339,15 @@ export function setupMenuCommand(bot) {
                         return;
                     }
 
+                    const userManagerAll = (await import('../services/userManager.js')).default;
+                    const approvedUsers = userManagerAll.getApprovedUsers();
+
                     const announceAllUsersText = `📤 Рассылка всем пользователям\n\n` +
-                        `Отправить сообщение всем одобренным пользователям:\n\n` +
+                        `Одобренных пользователей: ${approvedUsers.length}\n\n` +
+                        `Используйте команду:\n` +
                         `/announce_users <текст>\n\n` +
                         `Пример:\n` +
-                        `/announce_users Важное объявление для всех учителей!`;
+                        `/announce_users Важное объявление!`;
 
                     const announceAllUsersKeyboard = menuBuilder.getUserManagementMenu();
                     await ctx.editMessageText(announceAllUsersText, announceAllUsersKeyboard);
@@ -326,11 +361,24 @@ export function setupMenuCommand(bot) {
                         return;
                     }
 
-                    const announceBySubjectText = `📚 Рассылка по предмету\n\n` +
-                        `Отправить сообщение пользователям с определённым предметом:\n\n` +
+                    const userManagerSubjects = (await import('../services/userManager.js')).default;
+                    const subjects = userManagerSubjects.getAllSubjects();
+
+                    let announceBySubjectText = `📚 Рассылка по предмету\n\n`;
+
+                    if (subjects.length > 0) {
+                        announceBySubjectText += `Доступные предметы:\n`;
+                        subjects.forEach(subject => {
+                            const count = userManagerSubjects.getApprovedUsersBySubject(subject).length;
+                            announceBySubjectText += `• ${subject} (${count} чел.)\n`;
+                        });
+                        announceBySubjectText += `\n`;
+                    }
+
+                    announceBySubjectText += `Используйте команду:\n` +
                         `/announce_subject <предмет> <текст>\n\n` +
                         `Пример:\n` +
-                        `/announce_subject Математика Собрание учителей математики завтра в 15:00`;
+                        `/announce_subject Математика Собрание завтра`;
 
                     const announceBySubjectKeyboard = menuBuilder.getUserManagementMenu();
                     await ctx.editMessageText(announceBySubjectText, announceBySubjectKeyboard);
