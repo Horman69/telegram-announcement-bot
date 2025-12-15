@@ -34,10 +34,21 @@ export async function adminCheck(ctx, next) {
         logger.info(`[ADMIN_CHECK] Processing command: ${messageText} from user ${userId}`);
     }
 
-    // Проверяем права администратора только для команд
-    // Разрешаем /myid для всех пользователей (чтобы они могли узнать свой ID)
-    if (messageText.startsWith('/myid')) {
-        logger.info(`[ADMIN_CHECK] Allowing /myid for user ${userId}`);
+    // Команды, доступные всем пользователям (не требуют прав администратора)
+    const ALLOWED_NON_ADMIN_COMMANDS = [
+        '/start',
+        '/help',
+        '/menu',
+        '/myid',
+        '/cancel',
+        '/register'  // Регистрация для получения рассылок
+    ];
+
+    // Проверяем, является ли команда разрешённой для всех
+    const isAllowedCommand = ALLOWED_NON_ADMIN_COMMANDS.some(cmd => messageText.startsWith(cmd));
+
+    if (isAllowedCommand) {
+        logger.info(`[ADMIN_CHECK] Allowing command for all users: ${messageText}`);
         return next();
     }
 
