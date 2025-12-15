@@ -35,23 +35,25 @@ export function setupSetTopicCommand(bot) {
             );
         }
 
-        // Получаем ID темы из текущего сообщения
-        // В форумах message_thread_id может быть в разных местах
-        let threadId = ctx.message.message_thread_id;
-
-        // Если не нашли, проверяем в reply_to_message (для форумов)
-        if (!threadId && ctx.message.reply_to_message) {
-            threadId = ctx.message.reply_to_message.message_thread_id;
+        // Получаем ID темы из ответа на сообщение
+        // Telegram Bot API не передаёт message_thread_id напрямую
+        // Поэтому нужно ответить на любое сообщение в топике
+        let threadId = null;
+        
+        if (ctx.message.reply_to_message) {
+            // Если это ответ на сообщение, берём его ID как threadId
+            threadId = ctx.message.reply_to_message.message_id;
+            logger.info(`[SETTOPIC] Got threadId from reply: ${threadId}`);
+        } else if (ctx.chat.is_forum) {
+            // Если форум, но нет ответа - просим ответить на сообщение
+            return ctx.reply(
+                '❌ Для установки темы в форуме:\n\n' +
+                '1. Откройте нужную тему\n' +
+                '2. Ответьте на ЛЮБОЕ сообщение в этой теме командой /settopic\n\n' +
+                'Или отправьте /settopic в главной теме (General) для сброса.'
+            );
         }
-
-        // Если не нашли, проверяем is_topic_message
-        if (!threadId && ctx.message.is_topic_message) {
-            // Для топиков ID темы = ID первого сообщения в топике
-            threadId = ctx.message.message_id;
-        }
-
-        threadId = threadId || null;
-
+        
         logger.info(`[SETTOPIC] Chat type: ${chatType}, is_forum: ${ctx.chat.is_forum}, threadId: ${threadId}`);
         logger.info(`[SETTOPIC] Message details: ${JSON.stringify({
             message_id: ctx.message.message_id,
