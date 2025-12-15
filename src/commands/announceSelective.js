@@ -264,10 +264,31 @@ export function setupSelectiveAnnounceCommands(bot) {
                 successCount++;
                 logger.success(`Announcement sent to group ${group.title} (${group.id})`);
             } catch (error) {
-                errorCount++;
-                const errorMsg = `Failed to send to ${group.title} (${group.id}): ${error.message}`;
-                errors.push(errorMsg);
-                logger.error(errorMsg, error);
+                // Если тема форума не найдена, сбрасываем threadId и пробуем отправить в General
+                if (error.response?.description?.includes('message thread not found') && group.threadId) {
+                    logger.warn(`Thread ${group.threadId} not found in group ${group.title}, resetting to General`);
+                    groupManager.setThreadId(group.id, null);
+
+                    try {
+                        await ctx.telegram.sendMessage(
+                            group.id,
+                            `📢 <b>Объявление</b>\n\n${escapedText}`,
+                            { parse_mode: 'HTML' }
+                        );
+                        successCount++;
+                        logger.success(`Announcement sent to group ${group.title} (${group.id}) in General (thread was reset)`);
+                    } catch (retryError) {
+                        errorCount++;
+                        const errorMsg = `Failed to send to ${group.title} (${group.id}): ${retryError.message}`;
+                        errors.push(errorMsg);
+                        logger.error(errorMsg, retryError);
+                    }
+                } else {
+                    errorCount++;
+                    const errorMsg = `Failed to send to ${group.title} (${group.id}): ${error.message}`;
+                    errors.push(errorMsg);
+                    logger.error(errorMsg, error);
+                }
             }
         }
 
@@ -342,10 +363,31 @@ export function setupSelectiveAnnounceCommands(bot) {
                 successCount++;
                 logger.success(`Announcement sent to group ${group.title} (${group.id})`);
             } catch (error) {
-                errorCount++;
-                const errorMsg = `Failed to send to ${group.title} (${group.id}): ${error.message}`;
-                errors.push(errorMsg);
-                logger.error(errorMsg, error);
+                // Если тема форума не найдена, сбрасываем threadId и пробуем отправить в General
+                if (error.response?.description?.includes('message thread not found') && group.threadId) {
+                    logger.warn(`Thread ${group.threadId} not found in group ${group.title}, resetting to General`);
+                    groupManager.setThreadId(group.id, null);
+
+                    try {
+                        await ctx.telegram.sendMessage(
+                            group.id,
+                            `📢 <b>Объявление</b>\n\n${escapedText}`,
+                            { parse_mode: 'HTML' }
+                        );
+                        successCount++;
+                        logger.success(`Announcement sent to group ${group.title} (${group.id}) in General (thread was reset)`);
+                    } catch (retryError) {
+                        errorCount++;
+                        const errorMsg = `Failed to send to ${group.title} (${group.id}): ${retryError.message}`;
+                        errors.push(errorMsg);
+                        logger.error(errorMsg, retryError);
+                    }
+                } else {
+                    errorCount++;
+                    const errorMsg = `Failed to send to ${group.title} (${group.id}): ${error.message}`;
+                    errors.push(errorMsg);
+                    logger.error(errorMsg, error);
+                }
             }
         }
 

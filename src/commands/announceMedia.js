@@ -307,10 +307,51 @@ export function setupAnnounceMediaCommand(bot) {
                 successCount++;
                 logger.success(`Media announcement sent to group ${group.title} (${group.id})`);
             } catch (error) {
-                errorCount++;
-                const errorMsg = `Failed to send to ${group.title} (${group.id}): ${error.message}`;
-                errors.push(errorMsg);
-                logger.error(errorMsg, error);
+                // Если тема форума не найдена, сбрасываем threadId и пробуем отправить в General
+                if (error.response?.description?.includes('message thread not found') && group.threadId) {
+                    logger.warn(`Thread ${group.threadId} not found in group ${group.title}, resetting to General`);
+                    groupManager.setThreadId(group.id, null);
+
+                    try {
+                        const escapedCaption = escapeHtml(caption);
+                        const fullCaption = `📢 <b>Объявление</b>\n\n${escapedCaption}`;
+
+                        if (mediaType === 'photo') {
+                            await ctx.telegram.sendPhoto(group.id, fileId, {
+                                caption: fullCaption,
+                                parse_mode: 'HTML'
+                            });
+                        } else if (mediaType === 'video') {
+                            await ctx.telegram.sendVideo(group.id, fileId, {
+                                caption: fullCaption,
+                                parse_mode: 'HTML'
+                            });
+                        } else if (mediaType === 'document') {
+                            await ctx.telegram.sendDocument(group.id, fileId, {
+                                caption: fullCaption,
+                                parse_mode: 'HTML'
+                            });
+                        } else if (mediaType === 'audio') {
+                            await ctx.telegram.sendAudio(group.id, fileId, {
+                                caption: fullCaption,
+                                parse_mode: 'HTML'
+                            });
+                        }
+
+                        successCount++;
+                        logger.success(`Media announcement sent to group ${group.title} (${group.id}) in General (thread was reset)`);
+                    } catch (retryError) {
+                        errorCount++;
+                        const errorMsg = `Failed to send to ${group.title} (${group.id}): ${retryError.message}`;
+                        errors.push(errorMsg);
+                        logger.error(errorMsg, retryError);
+                    }
+                } else {
+                    errorCount++;
+                    const errorMsg = `Failed to send to ${group.title} (${group.id}): ${error.message}`;
+                    errors.push(errorMsg);
+                    logger.error(errorMsg, error);
+                }
             }
         }
 

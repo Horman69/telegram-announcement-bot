@@ -184,8 +184,34 @@ export function setupMediaTagsCommand(bot) {
                 successCount++;
                 logger.info(`[MEDIATAGS] Sent to group ${group.id}`);
             } catch (error) {
-                failCount++;
-                logger.error(`[MEDIATAGS] Failed to send to group ${group.id}:`, error.message);
+                // Если тема форума не найдена, сбрасываем threadId и пробуем отправить в General
+                if (error.response?.description?.includes('message thread not found') && group.threadId) {
+                    logger.warn(`[MEDIATAGS] Thread ${group.threadId} not found in group ${group.id}, resetting to General`);
+                    groupManager.setThreadId(group.id, null);
+
+                    try {
+                        const sendMethod = {
+                            'photo': 'sendPhoto',
+                            'video': 'sendVideo',
+                            'document': 'sendDocument',
+                            'audio': 'sendAudio'
+                        }[state.mediaType];
+
+                        await ctx.telegram[sendMethod](group.id, state.mediaId, {
+                            caption: state.caption,
+                            parse_mode: 'HTML'
+                        });
+
+                        successCount++;
+                        logger.info(`[MEDIATAGS] Sent to group ${group.id} in General (thread was reset)`);
+                    } catch (retryError) {
+                        failCount++;
+                        logger.error(`[MEDIATAGS] Failed to send to group ${group.id}:`, retryError.message);
+                    }
+                } else {
+                    failCount++;
+                    logger.error(`[MEDIATAGS] Failed to send to group ${group.id}:`, error.message);
+                }
             }
         }
 
