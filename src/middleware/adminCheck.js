@@ -44,10 +44,20 @@ export async function adminCheck(ctx, next) {
         '/register'  // Регистрация для получения рассылок
     ];
 
+    // Callback-действия, доступные всем пользователям
+    const ALLOWED_NON_ADMIN_CALLBACKS = [
+        'confirm_registration',
+        'cancel_registration',
+        'menu:user',
+        'menu:main',
+        'menu:action:register'
+    ];
+
     // Проверяем, является ли команда разрешённой для всех
     const isAllowedCommand = ALLOWED_NON_ADMIN_COMMANDS.some(cmd => messageText.startsWith(cmd));
+    const isAllowedCallback = ALLOWED_NON_ADMIN_CALLBACKS.some(cb => messageText.startsWith(cb));
 
-    if (isAllowedCommand) {
+    if (isAllowedCommand || isAllowedCallback) {
         logger.info(`[ADMIN_CHECK] Allowing command for all users: ${messageText}`);
         return next();
     }
