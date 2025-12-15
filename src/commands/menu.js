@@ -266,6 +266,77 @@ export function setupMenuCommand(bot) {
                     await ctx.answerCbQuery('Регистрация');
                     break;
 
+                // === ДЕЙСТВИЯ УПРАВЛЕНИЯ ПОЛЬЗОВАТЕЛЯМИ ===
+
+                case 'action:users_list':
+                    // Список всех пользователей
+                    if (!userIsAdmin) {
+                        await ctx.answerCbQuery('❌ У вас нет прав администратора', { show_alert: true });
+                        return;
+                    }
+
+                    const usersListText = `📋 Список пользователей\n\n` +
+                        `Для просмотра списка зарегистрированных пользователей используйте команду:\n\n` +
+                        `/users`;
+
+                    const usersListKeyboard = menuBuilder.getUserManagementMenu();
+                    await ctx.editMessageText(usersListText, usersListKeyboard);
+                    await ctx.answerCbQuery('Список пользователей');
+                    break;
+
+                case 'action:users_pending':
+                    // Пользователи, ожидающие одобрения
+                    if (!userIsAdmin) {
+                        await ctx.answerCbQuery('❌ У вас нет прав администратора', { show_alert: true });
+                        return;
+                    }
+
+                    const usersPendingText = `⏳ Ожидают одобрения\n\n` +
+                        `Для просмотра пользователей, ожидающих одобрения:\n\n` +
+                        `/users\n\n` +
+                        `Затем выберите фильтр "⏳ Ожидают"`;
+
+                    const usersPendingKeyboard = menuBuilder.getUserManagementMenu();
+                    await ctx.editMessageText(usersPendingText, usersPendingKeyboard);
+                    await ctx.answerCbQuery('Ожидают одобрения');
+                    break;
+
+                case 'action:announce_all_users':
+                    // Рассылка всем пользователям
+                    if (!userIsAdmin) {
+                        await ctx.answerCbQuery('❌ У вас нет прав администратора', { show_alert: true });
+                        return;
+                    }
+
+                    const announceAllUsersText = `📤 Рассылка всем пользователям\n\n` +
+                        `Отправить сообщение всем одобренным пользователям:\n\n` +
+                        `/announce_users <текст>\n\n` +
+                        `Пример:\n` +
+                        `/announce_users Важное объявление для всех учителей!`;
+
+                    const announceAllUsersKeyboard = menuBuilder.getUserManagementMenu();
+                    await ctx.editMessageText(announceAllUsersText, announceAllUsersKeyboard);
+                    await ctx.answerCbQuery('Рассылка всем');
+                    break;
+
+                case 'action:announce_by_subject':
+                    // Рассылка по предмету
+                    if (!userIsAdmin) {
+                        await ctx.answerCbQuery('❌ У вас нет прав администратора', { show_alert: true });
+                        return;
+                    }
+
+                    const announceBySubjectText = `📚 Рассылка по предмету\n\n` +
+                        `Отправить сообщение пользователям с определённым предметом:\n\n` +
+                        `/announce_subject <предмет> <текст>\n\n` +
+                        `Пример:\n` +
+                        `/announce_subject Математика Собрание учителей математики завтра в 15:00`;
+
+                    const announceBySubjectKeyboard = menuBuilder.getUserManagementMenu();
+                    await ctx.editMessageText(announceBySubjectText, announceBySubjectKeyboard);
+                    await ctx.answerCbQuery('Рассылка по предмету');
+                    break;
+
                 // === ДЕЙСТВИЯ АДМИНИСТРАТОРОВ ===
 
                 case 'action:add_admin':
