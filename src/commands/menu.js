@@ -250,6 +250,22 @@ export function setupMenuCommand(bot) {
                     await ctx.answerCbQuery('Ваш ID');
                     break;
 
+                case 'action:register':
+                    // Регистрация пользователя
+                    const registerText = `📝 Регистрация в системе\n\n` +
+                        `Для получения рассылок от бота вам необходимо зарегистрироваться.\n\n` +
+                        `После регистрации ваша заявка будет отправлена администратору на одобрение.\n\n` +
+                        `Чтобы начать регистрацию, используйте команду:\n\n` +
+                        `/register`;
+
+                    const registerKeyboard = Markup.inlineKeyboard([
+                        [Markup.button.callback('◀️ Назад', 'menu:user')]
+                    ]);
+
+                    await ctx.editMessageText(registerText, registerKeyboard);
+                    await ctx.answerCbQuery('Регистрация');
+                    break;
+
                 // === ДЕЙСТВИЯ АДМИНИСТРАТОРОВ ===
 
                 case 'action:add_admin':

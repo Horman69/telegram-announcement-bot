@@ -38,6 +38,7 @@ class MenuBuilder {
     getUserMenu() {
         try {
             const buttons = [
+                [Markup.button.callback('📝 Регистрация', 'menu:action:register')],
                 [Markup.button.callback('ℹ️ О боте', 'menu:action:start')],
                 [Markup.button.callback('📖 Справка', 'menu:action:help')],
                 [Markup.button.callback('🆔 Мой ID', 'menu:action:myid')],
