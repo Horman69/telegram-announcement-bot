@@ -35,6 +35,12 @@ export async function adminCheck(ctx, next) {
     }
 
     // Проверяем права администратора только для команд
+    // Разрешаем /myid для всех пользователей (чтобы они могли узнать свой ID)
+    if (messageText.startsWith('/myid')) {
+        logger.info(`[ADMIN_CHECK] Allowing /myid for user ${userId}`);
+        return next();
+    }
+
     if (!isAdmin(userId)) {
         logger.warn(
             `Access denied for non-admin user: ${userName} (${userId})`
