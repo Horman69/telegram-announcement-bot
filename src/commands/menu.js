@@ -897,7 +897,7 @@ export function setupMenuCommand(bot) {
                     await ctx.answerCbQuery('Инструкция по ID группы');
                     break;
 
-                case 'forum_help_v2':
+                case 'action:forum_help_v2':
                     // Информация о работе с форумами
                     if (!userIsAdmin) {
                         await ctx.answerCbQuery('❌ У вас нет прав администратора', { show_alert: true });
