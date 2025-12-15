@@ -718,12 +718,20 @@ export function setupMenuCommand(bot) {
 
                     groups.forEach((group, index) => {
                         const addedDate = new Date(group.addedAt).toLocaleDateString('ru-RU');
-                        groupsListText += `${index + 1}. ${group.title}\n`;
+
+                        // Добавляем иконку форума, если установлена тема
+                        const forumIcon = group.threadId ? ' 💬' : '';
+                        groupsListText += `${index + 1}. ${group.title}${forumIcon}\n`;
                         groupsListText += `   ID: <code>${group.id}</code>\n`;
 
                         if (group.tags && group.tags.length > 0) {
                             const tagsStr = group.tags.map(tag => `#${tag}`).join(', ');
                             groupsListText += `   Теги: ${tagsStr}\n`;
+                        }
+
+                        // Показываем тему форума, если установлена
+                        if (group.threadId) {
+                            groupsListText += `   📍 Тема форума: ID ${group.threadId}\n`;
                         }
 
                         if (group.addedManually) {
@@ -733,12 +741,21 @@ export function setupMenuCommand(bot) {
                         groupsListText += `   Добавлена: ${addedDate}\n\n`;
                     });
 
-                    // Создаем кнопки для удаления
+                    // Создаем кнопки для каждой группы
                     const deleteButtons = [];
                     groups.forEach((group) => {
-                        deleteButtons.push([
+                        const groupButtons = [
                             Markup.button.callback(`🗑️ Удалить "${group.title}"`, `delete_group:${group.id}`)
-                        ]);
+                        ];
+
+                        // Добавляем кнопку сброса темы, если тема установлена
+                        if (group.threadId) {
+                            groupButtons.push(
+                                Markup.button.callback(`🔄 Сбросить тему`, `reset_topic:${group.id}`)
+                            );
+                        }
+
+                        deleteButtons.push(groupButtons);
                     });
                     deleteButtons.push([Markup.button.callback('◀️ Назад', 'menu:group_management')]);
 
