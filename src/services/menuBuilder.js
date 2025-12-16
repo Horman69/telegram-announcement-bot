@@ -251,7 +251,6 @@ class MenuBuilder {
             const buttons = [
                 [Markup.button.callback('📋 Список групп', 'menu:action:group_list')],
                 [Markup.button.callback('➕ Добавить группу', 'menu:action:group_add')],
-                [Markup.button.callback('🗑️ Удалить группу', 'menu:action:group_remove')],
                 [Markup.button.callback('🆔 ID группы', 'menu:action:group_id')],
                 [Markup.button.callback('◀️ Назад', 'menu:admin')]
             ];
