@@ -292,11 +292,21 @@ export function setupMenuCommand(bot) {
                     allUsers.forEach((user, index) => {
                         const statusIcon = user.status === 'approved' ? '✅' : user.status === 'pending' ? '⏳' : '❌';
                         usersListText += `${index + 1}. ${statusIcon} ${user.lastName} ${user.firstName} ${user.patronymic}\n`;
-                        usersListText += `   📚 ${user.subject}\n\n`;
+                        usersListText += `   📚 ${user.subject}\n`;
+                        usersListText += `   🆔 <code>${user.id}</code>\n\n`;
                     });
 
-                    const usersListKeyboard = menuBuilder.getUserManagementMenu();
-                    await ctx.editMessageText(usersListText, usersListKeyboard);
+                    // Создаем кнопки для каждого пользователя
+                    const userButtons = [];
+                    allUsers.forEach((user) => {
+                        userButtons.push([
+                            Markup.button.callback(`🗑️ Удалить "${user.lastName} ${user.firstName}"`, `delete_user:${user.id}`)
+                        ]);
+                    });
+                    userButtons.push([Markup.button.callback('◀️ Назад', 'menu:user_management')]);
+
+                    const usersListKeyboard = Markup.inlineKeyboard(userButtons);
+                    await ctx.editMessageText(usersListText, { parse_mode: 'HTML', ...usersListKeyboard });
                     await ctx.answerCbQuery('Список пользователей');
                     break;
 
