@@ -949,6 +949,74 @@ export function setupMenuCommand(bot) {
                     await ctx.answerCbQuery('Список групп');
                     break;
 
+                case 'action:group_list':
+                    // Показать список групп (используется как кнопка "Назад" после удаления)
+                    if (!userIsAdmin) {
+                        await ctx.answerCbQuery('❌ У вас нет прав администратора', { show_alert: true });
+                        return;
+                    }
+
+                    const groupManagerList = (await import('../services/groupManager.js')).default;
+                    const groupsList = groupManagerList.getGroups();
+
+                    if (groupsList.length === 0) {
+                        const emptyKeyboard = Markup.inlineKeyboard([
+                            [Markup.button.callback('◀️ Назад', 'menu:group_management')]
+                        ]);
+                        await ctx.editMessageText(
+                            '📋 Список групп пуст.\n\n' +
+                            'Добавьте бота в группу или используйте /addgroup для ручного добавления.',
+                            emptyKeyboard
+                        );
+                        await ctx.answerCbQuery('Нет групп');
+                        return;
+                    }
+
+                    let listMessage = `📋 Список групп (${groupsList.length}):\n\n`;
+
+                    groupsList.forEach((group, index) => {
+                        listMessage += `${index + 1}. ${group.title}\n`;
+                        listMessage += `   🆔 <code>${group.id}</code>\n`;
+
+                        if (group.tags && group.tags.length > 0) {
+                            listMessage += `   🏷️ ${group.tags.join(', ')}\n`;
+                        }
+
+                        if (group.threadId) {
+                            listMessage += `   💬 Тема форума: ${group.threadId}\n`;
+                        }
+
+                        if (group.addedManually) {
+                            listMessage += `   📝 Добавлена вручную\n`;
+                        }
+
+                        const addedDate = new Date(group.addedAt).toLocaleString('ru-RU');
+                        listMessage += `   Добавлена: ${addedDate}\n\n`;
+                    });
+
+                    const listButtons = [];
+                    groupsList.forEach((group) => {
+                        const groupButtons = [
+                            Markup.button.callback(`🗑️ Удалить "${group.title}"`, `delete_group:${group.id}`)
+                        ];
+
+                        if (group.threadId) {
+                            groupButtons.push(
+                                Markup.button.callback(`🔄 Сбросить тему`, `reset_topic:${group.id}`)
+                            );
+                        }
+
+                        listButtons.push(groupButtons);
+                    });
+
+                    listButtons.push([Markup.button.callback('◀️ Назад', 'menu:group_management')]);
+
+                    const listKeyboard = Markup.inlineKeyboard(listButtons);
+
+                    await ctx.editMessageText(listMessage, { parse_mode: 'HTML', ...listKeyboard });
+                    await ctx.answerCbQuery('Список групп');
+                    break;
+
                 case 'action:group_add':
                     // Добавить группу
                     if (!userIsAdmin) {
