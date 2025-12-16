@@ -234,7 +234,7 @@ export function setupRemoveGroupCommand(bot) {
         const success = groupManager.removeGroup(groupId);
 
         const backKeyboard = Markup.inlineKeyboard([
-            [Markup.button.callback('◀️ К списку групп', 'action:group_list')]
+            [Markup.button.callback('◀️ К списку групп', 'menu:action:group_list')]
         ]);
 
         if (success) {
@@ -258,7 +258,7 @@ export function setupRemoveGroupCommand(bot) {
     // Отмена удаления через кнопку
     bot.action('cancel_delete_group', async (ctx) => {
         const backKeyboard = Markup.inlineKeyboard([
-            [Markup.button.callback('◀️ К списку групп', 'action:group_list')]
+            [Markup.button.callback('◀️ К списку групп', 'menu:action:group_list')]
         ]);
 
         await ctx.editMessageText(
