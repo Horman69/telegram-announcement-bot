@@ -395,6 +395,26 @@ export function setupMenuCommand(bot) {
                     await ctx.answerCbQuery('Рассылка по предмету');
                     break;
 
+                case 'action:announce_users_media':
+                    // Рассылка медиа пользователям
+                    if (!userIsAdmin) {
+                        await ctx.answerCbQuery('❌ У вас нет прав администратора', { show_alert: true });
+                        return;
+                    }
+
+                    const announceMediaText = `📎 Рассылка медиа пользователям\n\n` +
+                        `Используйте команду:\n` +
+                        `/announce_users_media\n\n` +
+                        `Затем:\n` +
+                        `1. Отправьте медиа-файл (фото, видео, документ, аудио)\n` +
+                        `2. Отправьте текст (подпись)\n` +
+                        `3. Подтвердите отправку`;
+
+                    const announceMediaKeyboard = menuBuilder.getUserManagementMenu();
+                    await ctx.editMessageText(announceMediaText, announceMediaKeyboard);
+                    await ctx.answerCbQuery('Рассылка медиа');
+                    break;
+
                 // === ДЕЙСТВИЯ АДМИНИСТРАТОРОВ ===
 
                 case 'action:add_admin':

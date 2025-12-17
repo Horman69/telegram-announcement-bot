@@ -284,6 +284,7 @@ class MenuBuilder {
                 [Markup.button.callback('⏳ Ожидают одобрения', 'menu:action:users_pending')],
                 [Markup.button.callback('📤 Рассылка всем', 'menu:action:announce_all_users')],
                 [Markup.button.callback('📚 Рассылка по предмету', 'menu:action:announce_by_subject')],
+                [Markup.button.callback('📎 Рассылка медиа', 'menu:action:announce_users_media')],
                 [Markup.button.callback('◀️ Назад', 'menu:admin')]
             ];
 
