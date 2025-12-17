@@ -2,6 +2,7 @@ import { Markup } from 'telegraf';
 import { isAdmin } from '../config/admins.js';
 import templateManager from '../services/templateManager.js';
 import groupManager from '../services/groupManager.js';
+import conversationState from '../services/conversationState.js';
 import logger from '../services/logger.js';
 
 /**
@@ -37,13 +38,9 @@ export function setupTemplateCommands(bot) {
         }
 
         // Сохраняем состояние: ожидаем текст шаблона
-        if (!bot.context.templateStates) {
-            bot.context.templateStates = new Map();
-        }
-
-        bot.context.templateStates.set(userId, {
-            action: 'save',
-            name: templateName
+        conversationState.setState(userId, {
+            action: 'waiting_template_text',
+            templateName: templateName
         });
 
         logger.info(`Admin ${userId} initiated template save: "${templateName}"`);
@@ -437,20 +434,16 @@ export function setupTemplateCommands(bot) {
     // Обработчик текстовых сообщений для сохранения шаблона
     bot.on('text', (ctx, next) => {
         const userId = ctx.from.id;
+        const state = conversationState.getState(userId);
 
-        if (!bot.context.templateStates) {
-            return next();
-        }
-
-        const state = bot.context.templateStates.get(userId);
-
-        if (!state || state.action !== 'save') {
+        // Проверяем, ожидаем ли мы текст шаблона
+        if (!state || state.action !== 'waiting_template_text') {
             return next();
         }
 
         // Пользователь отправил текст для шаблона
         const templateText = ctx.message.text;
-        const templateName = state.name;
+        const templateName = state.templateName;
 
         const success = templateManager.saveTemplate(templateName, templateText);
 
@@ -466,7 +459,7 @@ export function setupTemplateCommands(bot) {
         }
 
         // Очищаем состояние
-        bot.context.templateStates.delete(userId);
+        conversationState.clearState(userId);
     });
 }
 
