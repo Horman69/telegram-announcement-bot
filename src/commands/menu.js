@@ -402,7 +402,7 @@ export function setupMenuCommand(bot) {
                         return;
                     }
 
-                    const announceMediaText = `📎 Рассылка медиа пользователям\n\n` +
+                    const announceUsersMediaText = `📎 Рассылка медиа пользователям\n\n` +
                         `Используйте команду:\n` +
                         `/announce_users_media\n\n` +
                         `Затем:\n` +
@@ -410,8 +410,8 @@ export function setupMenuCommand(bot) {
                         `2. Отправьте текст (подпись)\n` +
                         `3. Подтвердите отправку`;
 
-                    const announceMediaKeyboard = menuBuilder.getUserManagementMenu();
-                    await ctx.editMessageText(announceMediaText, announceMediaKeyboard);
+                    const announceUsersMediaKeyboard = menuBuilder.getUserManagementMenu();
+                    await ctx.editMessageText(announceUsersMediaText, announceUsersMediaKeyboard);
                     await ctx.answerCbQuery('Рассылка медиа');
                     break;
 
