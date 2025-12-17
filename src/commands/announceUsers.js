@@ -1,6 +1,7 @@
 import { Markup } from 'telegraf';
 import { isAdmin } from '../config/admins.js';
 import userManager from '../services/userManager.js';
+import conversationState from '../services/conversationState.js';
 import logger from '../services/logger.js';
 
 /**
@@ -47,8 +48,31 @@ export function setupAnnounceUsersCommands(bot) {
             );
         }
 
-        // Отправляем рассылку
-        await sendBroadcastToUsers(ctx, users, messageText, userId);
+        // Показываем превью и кнопки подтверждения
+        const confirmKeyboard = Markup.inlineKeyboard([
+            [
+                Markup.button.callback('✅ Да, отправить', `confirm_broadcast_users:${Date.now()}`),
+                Markup.button.callback('❌ Отмена', 'cancel_broadcast_users')
+            ]
+        ]);
+
+        // Сохраняем данные для подтверждения
+        conversationState.setState(userId, {
+            action: 'confirm_broadcast_users',
+            messageText: messageText,
+            userCount: users.length
+        });
+
+        logger.info(`Admin ${userId} initiated broadcast to ${users.length} users`);
+
+        ctx.reply(
+            `📢 Предпросмотр рассылки:\n\n` +
+            `${messageText}\n\n` +
+            `━━━━━━━━━━━━━━━━━━━━\n` +
+            `👥 Будет отправлено ${users.length} пользовател${getUserWord(users.length)}.\n\n` +
+            `Подтвердите отправку:`,
+            confirmKeyboard
+        );
     });
 
     // Команда /announce_subject - рассылка пользователям по предмету
@@ -120,8 +144,108 @@ export function setupAnnounceUsersCommands(bot) {
             );
         }
 
+        // Показываем превью и кнопки подтверждения
+        const confirmKeyboard = Markup.inlineKeyboard([
+            [
+                Markup.button.callback('✅ Да, отправить', `confirm_broadcast_subject:${Date.now()}`),
+                Markup.button.callback('❌ Отмена', 'cancel_broadcast_subject')
+            ]
+        ]);
+
+        // Сохраняем данные для подтверждения
+        conversationState.setState(userId, {
+            action: 'confirm_broadcast_subject',
+            messageText: messageText,
+            subject: subject,
+            userCount: users.length
+        });
+
+        logger.info(`Admin ${userId} initiated broadcast to ${users.length} users (subject: ${subject})`);
+
+        ctx.reply(
+            `📢 Предпросмотр рассылки (${subject}):\n\n` +
+            `${messageText}\n\n` +
+            `━━━━━━━━━━━━━━━━━━━━\n` +
+            `👥 Будет отправлено ${users.length} пользовател${getUserWord(users.length)} с предметом "${subject}".\n\n` +
+            `Подтвердите отправку:`,
+            confirmKeyboard
+        );
+    });
+
+    // Обработчик подтверждения рассылки всем пользователям
+    bot.action(/confirm_broadcast_users:(.+)/, async (ctx) => {
+        const userId = ctx.from.id;
+
+        if (!isAdmin(userId)) {
+            return ctx.answerCbQuery('❌ У вас нет прав для этого действия.');
+        }
+
+        const state = conversationState.getState(userId);
+
+        if (!state || state.action !== 'confirm_broadcast_users') {
+            await ctx.answerCbQuery('❌ Ошибка: данные не найдены');
+            return ctx.editMessageText('❌ Ошибка: данные рассылки не найдены. Попробуйте снова.');
+        }
+
+        const { messageText } = state;
+        const users = userManager.getApprovedUsers();
+
+        // Очищаем состояние
+        conversationState.clearState(userId);
+
+        await ctx.answerCbQuery('Начинаю рассылку...');
+        await ctx.editMessageText('📤 Начинаю рассылку...');
+
+        // Отправляем рассылку
+        await sendBroadcastToUsers(ctx, users, messageText, userId);
+    });
+
+    // Обработчик отмены рассылки всем пользователям
+    bot.action('cancel_broadcast_users', async (ctx) => {
+        const userId = ctx.from.id;
+        conversationState.clearState(userId);
+
+        await ctx.answerCbQuery('Отменено');
+        await ctx.editMessageText('❌ Рассылка отменена.');
+        logger.info(`Admin ${userId} cancelled broadcast to users`);
+    });
+
+    // Обработчик подтверждения рассылки по предмету
+    bot.action(/confirm_broadcast_subject:(.+)/, async (ctx) => {
+        const userId = ctx.from.id;
+
+        if (!isAdmin(userId)) {
+            return ctx.answerCbQuery('❌ У вас нет прав для этого действия.');
+        }
+
+        const state = conversationState.getState(userId);
+
+        if (!state || state.action !== 'confirm_broadcast_subject') {
+            await ctx.answerCbQuery('❌ Ошибка: данные не найдены');
+            return ctx.editMessageText('❌ Ошибка: данные рассылки не найдены. Попробуйте снова.');
+        }
+
+        const { messageText, subject } = state;
+        const users = userManager.getApprovedUsersBySubject(subject);
+
+        // Очищаем состояние
+        conversationState.clearState(userId);
+
+        await ctx.answerCbQuery('Начинаю рассылку...');
+        await ctx.editMessageText(`📤 Начинаю рассылку (${subject})...`);
+
         // Отправляем рассылку
         await sendBroadcastToUsers(ctx, users, messageText, userId, subject);
+    });
+
+    // Обработчик отмены рассылки по предмету
+    bot.action('cancel_broadcast_subject', async (ctx) => {
+        const userId = ctx.from.id;
+        conversationState.clearState(userId);
+
+        await ctx.answerCbQuery('Отменено');
+        await ctx.editMessageText('❌ Рассылка отменена.');
+        logger.info(`Admin ${userId} cancelled broadcast by subject`);
     });
 }
 
@@ -193,4 +317,20 @@ async function sendBroadcastToUsers(ctx, users, messageText, adminId, subject = 
     );
 
     logger.success(`Broadcast to users completed: ${successCount}/${users.length} successful`);
+}
+
+/**
+ * Вспомогательная функция для склонения слова "пользователь"
+ */
+function getUserWord(count) {
+    const lastDigit = count % 10;
+    const lastTwoDigits = count % 100;
+
+    if (lastDigit === 1 && lastTwoDigits !== 11) {
+        return 'ю';  // 1 пользователю, 21 пользователю
+    } else if ([2, 3, 4].includes(lastDigit) && ![12, 13, 14].includes(lastTwoDigits)) {
+        return 'ям';  // 2 пользователям, 3 пользователям
+    } else {
+        return 'ям';  // 5 пользователям, 10 пользователям
+    }
 }
