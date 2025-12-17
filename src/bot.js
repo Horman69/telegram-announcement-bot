@@ -20,6 +20,7 @@ import { setupSetTopicCommand } from './commands/settopic.js';
 import { setupRegisterCommand } from './commands/register.js';
 import { setupApproveUserCommands } from './commands/approveUser.js';
 import { setupAnnounceUsersCommands } from './commands/announceUsers.js';
+import { setupAnnounceUsersMediaCommand } from './commands/announceUsersMedia.js';
 import { setupUsersCommand } from './commands/users.js';
 import menuBuilder from './services/menuBuilder.js';
 import { isAdmin } from './config/admins.js';
@@ -133,6 +134,7 @@ function initializeCommands() {
     setupRegisterCommand(bot);  // User registration
     setupApproveUserCommands(bot);  // Approve/reject users
     setupAnnounceUsersCommands(bot);  // Broadcast to users
+    setupAnnounceUsersMediaCommand(bot);  // Broadcast media to users
     setupUsersCommand(bot);  // Manage users
     setupGroupsCommand(bot);
     setupAnnounceCommand(bot);
